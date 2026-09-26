@@ -111,7 +111,7 @@ img {
 }
 
 .logo {
-  font-size: 0.88rem;
+  font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.04em;
 }
@@ -268,27 +268,51 @@ img {
   border-radius: 50%;
 }
 
-.about-grid {
+/*
+ * Two stacked blocks. The lead block sits flush against the left edge of the
+ * shell and the follow block starts at the horizontal midpoint, so the pair
+ * steps down and to the right. The 62rem breakpoint below zeroes the inset and
+ * turns it into a plain single-column stack.
+ */
+.about-blocks {
+  --about-inset: 0%;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(29rem, 0.95fr);
-  gap: clamp(4rem, 10vw, 9rem);
+  gap: clamp(4rem, 9vw, 8rem);
 }
 
-.about-manifesto h2 {
-  max-width: 15ch;
+.about-block {
+  min-width: 0;
+  margin-inline-start: var(--about-inset);
+}
+
+.about-block.follow {
+  --about-inset: 50%;
+}
+
+.about-block .detail-label {
+  display: block;
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.about-block h2 {
+  max-width: 14ch;
   margin: 0;
-  font-size: clamp(2.2rem, 4vw, 4.3rem);
+  font-size: clamp(2.4rem, 4.6vw, 5rem);
   font-weight: 500;
   letter-spacing: -0.055em;
-  line-height: 1.04;
+  line-height: 1.02;
 }
 
-.about-manifesto p {
+.about-block p {
   max-width: 34rem;
-  margin: 3rem 0 2rem;
+  margin: 2.5rem 0 0;
   color: #4e4e4b;
   font-size: clamp(1rem, 1.3vw, 1.15rem);
   line-height: 1.65;
+}
+
+.about-block .text-link {
+  margin-top: 2.5rem;
 }
 
 .text-link {
@@ -316,102 +340,11 @@ img {
   transform: rotate(180deg);
 }
 
-.brand-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-top: 0.08rem solid var(--line-light);
-  border-left: 0.08rem solid var(--line-light);
-}
-
-.brand-card {
-  position: relative;
-  display: flex;
-  min-height: 15rem;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 1.5rem;
-  border-right: 0.08rem solid var(--line-light);
-  border-bottom: 0.08rem solid var(--line-light);
-}
-
-.brand-meta,
 .detail-label {
   color: var(--mid-gray);
   font-size: 0.58rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-}
-
-.loop-mark {
-  display: flex;
-  justify-content: space-between;
-  font-family: var(--font-display);
-  font-size: 5rem;
-  letter-spacing: -0.12em;
-  line-height: 0.8;
-}
-
-.loop-mark span:last-child {
-  color: var(--accent);
-}
-
-.swatches {
-  display: flex;
-  height: 4.7rem;
-}
-
-.swatch {
-  flex: 1;
-}
-
-.swatch-black {
-  background: var(--ink);
-}
-
-.swatch-blue {
-  background: var(--accent);
-}
-
-.swatch-white {
-  border: 0.08rem solid var(--line-light);
-  background: var(--white);
-}
-
-.color-name {
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-}
-
-.type-sample {
-  font-family: var(--font-display);
-  font-size: 5rem;
-  letter-spacing: -0.09em;
-  line-height: 0.8;
-}
-
-.type-note {
-  font-size: 0.68rem;
-  line-height: 1.5;
-}
-
-.principle-card ol {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: principles;
-}
-
-.principle-card li {
-  padding-block: 0.5rem;
-  border-bottom: 0.08rem solid var(--line-light);
-  counter-increment: principles;
-  font-size: 0.8rem;
-}
-
-.principle-card li::before {
-  margin-right: 0.6rem;
-  color: var(--mid-gray);
-  content: "0" counter(principles);
 }
 
 .team-section {
@@ -463,11 +396,6 @@ img {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-}
-
-.angle-button,
-.filter-tab {
-  clip-path: polygon(0.75rem 0, 100% 0, calc(100% - 0.75rem) 100%, 0 100%);
 }
 
 .angle-button {
@@ -1046,8 +974,8 @@ img {
 }
 
 @media (max-width: 62rem) {
-  .about-grid {
-    grid-template-columns: 1fr;
+  .about-block {
+    margin-inline-start: 0;
   }
 
   .team-layout {
@@ -1095,14 +1023,6 @@ img {
 
   .hero-index {
     display: none;
-  }
-
-  .brand-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .brand-card {
-    min-height: 13rem;
   }
 
   .team-section {

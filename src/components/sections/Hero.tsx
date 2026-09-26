@@ -18,7 +18,7 @@ export function Hero() {
       <div className="hero-shade" />
       <nav className="nav shell" aria-label="Main navigation">
         <Link className="logo logo-light" href="#home">
-          NORDIC/LOOP<span className="logo-dot">.</span>
+          stqck<span className="logo-dot">.</span>
         </Link>
         <div className="nav-actions">
           <span className="language">EN</span>
@@ -44,12 +44,10 @@ export function Hero() {
         ))}
       </div>
       <div className="hero-copy shell">
-        <div className="hero-kicker">Independent software studio · Lisbon</div>
         <Heading as="h1">
-          Software with
-          <br />
-          a point of view.
+         stqck
         </Heading>
+        <div className="hero-kicker">We make stuff</div>
         <Link className="scroll-cue" href="#about">
           <span>DISCOVER OUR WORK</span>
           <span className="chevron" />
