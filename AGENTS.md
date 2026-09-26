@@ -4,12 +4,13 @@ Single-page React 19 + Vite 8 marketing site. No backend, no API layer, no tests
 
 ## Commands
 
-`package.json` defines only `dev`, `build`, `preview`, `format`. There is **no** test, lint, or typecheck script.
+`package.json` defines `dev`, `build`, `preview`, `format`, `predeploy`, `deploy`. There is **no** test, lint, or typecheck script.
 
 - `pnpm run build` — the primary verification step (Vite fails on broken imports/JSX). Run before declaring work done.
 - `pnpm exec tsc --noEmit` — the typecheck. `tsconfig.json` is `strict` + `noEmit` and includes both `src` and `vite.config.ts`.
 - `pnpm run dev` — port `$PORT` (default 8443) with `strictPort: true`, so a second instance exits rather than picking a free port. Host is `0.0.0.0` unless `FIGMA_DEV_SERVER_HOST` is set.
 - `pnpm run preview` — serves the built `dist/` on the same port scheme.
+- `pnpm run deploy` — see **Deploying**. Runs `build` first, then pushes to GitHub Pages. Local-only; there is no CI.
 
 ### Formatting is a trap
 
@@ -17,13 +18,13 @@ Single-page React 19 + Vite 8 marketing site. No backend, no API layer, no tests
 
 Consequences, all verified:
 
-- `pnpm exec oxfmt --list-different` at the root flags every `src/` file, `vite.config.ts`, and **753 files under `node_modules/`** (it also hard-errors on `.d.ts` files it cannot parse). Never run it repo-wide.
+- `pnpm exec oxfmt --list-different` at the root flags every `src/` file, `vite.config.ts`, and **every source file under `node_modules/`** — over a thousand of them, and the count drifts as dependencies change, so don't quote a number. It also hard-errors on `.d.ts` files it cannot parse. Never run it repo-wide.
 - `pnpm run format -- <path>` works and is the only safe invocation. Pass explicit paths for the files you touched.
 - Formatting `vite.config.ts` or `src/main.tsx` converts their single quotes to double quotes — these two files are hand-written in single quotes while the rest of `src/` uses double quotes. That churn is a large unrelated diff; leave them alone unless you are already rewriting them.
 
 ## Architecture
 
-`src/App.tsx` is ~25 lines of pure composition: calls `useRevealOnScroll()` and renders `<Hero /> <About /> <Team /> <Projects /> <Contact /> <Footer />` inside `<main>`.
+`src/App.tsx` is ~25 lines of pure composition: calls `useRevealOnScroll()` and renders `<Hero /> <About /> <Projects /> <Team /> <Contact /> <Footer />` inside `<main>`. Note `Projects` comes **before** `Team`.
 
 - **Exports are not uniform.** `App` is the only default export. Every section and UI component is a **named** export: `export function About()` imported as `import { About } from "../sections/About"`. Match the file you are editing.
 - `src/components/sections/` — one file per page section. Each owns its own state, so there is no state in `App` and no prop drilling: `menuOpen` in `Hero`, `memberIndex`/`thumbRow` in `Team`, `filter` in `Projects`, `submitted` in `Contact`. Lift state deliberately if a new section needs to share it.
@@ -33,7 +34,7 @@ Consequences, all verified:
 
 ## Styling: plain CSS, not Tailwind utilities
 
-Tailwind v4 is installed and `src/index.css` does `@import "tailwindcss"`, but the app uses **zero** utility classes. All ~1200 lines of styling are hand-written semantic CSS referenced by `className` strings.
+Tailwind v4 is installed and `src/index.css` does `@import "tailwindcss"`, but the app uses **zero** utility classes. All ~1100 lines of styling are hand-written semantic CSS referenced by `className` strings.
 
 - Add or change styles as rules in `src/index.css`; do not introduce utility classes. No Tailwind or PostCSS config file exists or is needed.
 - Design tokens are CSS custom properties on `:root` (`--ink`, `--paper`, `--accent`, `--shell`, `--font-body`, `--font-display`, …) — extend those rather than hardcoding colors.
@@ -51,19 +52,23 @@ Verified: an earlier version of this file named five Tailwind utilities as examp
 
 ## Deploying
 
-This is a plain Vite app. There is no platform CLI and no deploy script in the repo; wire up whichever host you use and point it at `dist/`.
+Deployed to **GitHub Pages** as a project site: `https://stqck-org.github.io/website/`. The remote is `git@github.com:stqck-org/website.git` (an **org** repo, so changing Pages settings needs org admin).
 
-- `vite.config.ts` sets `base` from the `FIGMA_PUBLIC_URL` env var, falling back to `/`. Set that variable to a subpath (e.g. `/website/`) if deploying under one; the trailing slash is added for you.
-- `vite.config.ts` enables inline sourcemaps and skips minification when the build mode is `development`, so `pnpm run build --mode development` produces a readable, cached-preview-friendly bundle.
+Publishing is a **local push, not CI.** Nothing deploys unless a human runs it.
+
+- `pnpm run deploy` — `predeploy` runs `pnpm run build`, then `gh-pages -d dist --nojekyll` force-pushes `dist/` to the `gh-pages` branch at the repo root. `gh-pages` is a devDependency; the branch is disposable and rewritten on every run, so never put work on it.
+- The `gh-pages` branch is **not enough on its own.** Repo Settings → Pages → Build and deployment → Source must be set to *Deploy from a branch*, branch `gh-pages`, folder `/ (root)`. That is a manual UI step.
+- `vite.config.ts` sets `base` to `/website/` **only when `mode === 'production'`**, and to `/` otherwise. So `pnpm run dev` serves at `/` with no redirect, while builds and `pnpm run preview` serve at `/website/` to match the deployed subpath. Both were verified; do not reduce it to a single value without re-checking both.
+- `vite.config.ts` enables inline sourcemaps and skips minification when the build mode is `development`, so `pnpm run build --mode development` produces a readable, cached-preview-friendly bundle. Note this **disables the production `base`**, so that mode is not deployable.
+- There is no client-side router, so no SPA `404.html` fallback is needed. There is no `CNAME`; adding a custom domain needs **both** a `CNAME` in `dist/` **and** `base` changed to `/`, or every asset 404s.
 
 ## Gotchas
 
-- **Never turn `.reveal` into a wrapper component.** `useRevealOnScroll` (`src/hooks/useRevealOnScroll.ts`) does a one-time `document.querySelectorAll(".reveal")` on mount and adds `is-visible` to each. `.reveal` sits on elements that participate directly in layout — several are grid children (`.about-manifesto` and `.brand-grid` inside `.about-grid`; `.contact-copy` and `.contact-form` inside `.contact-grid`; `.team-content` inside `.team-layout`; `.project-grid`). Wrapping them in a `<Reveal>` element inserts DOM nodes and breaks those grids. A component *boundary* adds no DOM; a wrapper element does.
+- **Never turn `.reveal` into a wrapper component.** `useRevealOnScroll` (`src/hooks/useRevealOnScroll.ts`) does a one-time `document.querySelectorAll(".reveal")` on mount and adds `is-visible` to each. `.reveal` sits on elements that participate directly in layout — several are grid children (`.about-block` inside `.about-blocks`; `.contact-copy` and `.contact-form` inside `.contact-grid`; `.team-content` inside `.team-layout`; `.project-grid`). Wrapping them in a `<Reveal>` element inserts DOM nodes and breaks those grids. A component *boundary* adds no DOM; a wrapper element does. `About.tsx`'s local `AboutBlock` is the worked example: it is a component boundary that puts `reveal` on the grid child itself, not a wrapper.
 - The `key={member.name}` on the portrait `<div>` in `Team.tsx` is **inert** (a lone child is reconciled by position, not key) and load-bearing: lifting it onto the `<MemberPortrait>` call would make React remount the portrait and replay the `portrait-in` animation on every member change. There is an in-code comment saying so.
 - `Button`, `Link`, and `Heading` default `className` to `""` and therefore always emit a `class` attribute; `Field` deliberately has **no** default and emits none. Don't "tidy" that asymmetry — it changes the DOM.
 - `index.html` is a hand-written shell. There is no template engine: edit the `<title>`, `<meta name="description">`, and `<html lang>` directly. The lang value is `"en"` and the title/description were inlined by hand — keep all three in sync if the brand wording changes.
-- `brand-mark`, `color-card`, and `type-card` are applied in JSX via `<BrandCard variant=...>` but have **no** rules in `index.css`. Leftovers from the design import, harmless, left in place deliberately. (`principle-card`, the fourth variant, *is* styled.)
-- `src/imports/Nordic_Loop___Studio_Showcase_Mockup.html` is an imported design reference that nothing imports. It predates the implementation and its palette (violet `#5B4CFF` / lime, Space Grotesk) does not match the shipped site (blue `#2457ff`, Archivo Black). Do not "restore" styles from it.
+- `src/imports/Nordic_Loop___Studio_Showcase_Mockup.html` is an imported design reference that nothing imports. It predates the implementation and its palette (violet `#5B4CFF` / lime, Space Grotesk) does not match the shipped site (blue `#2457ff`, Archivo Black). Do not "restore" styles from it. It is also the only remaining place the old `.brand-grid` class name appears, which is a coincidence, not a live reference.
 - The contact form and newsletter input are client-only: `submitForm` just flips local state, no request is made. Wiring a real submission is a new feature, not a missing config.
 
 ## Verifying a refactor
