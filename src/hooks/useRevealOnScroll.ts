@@ -6,7 +6,7 @@ import { useEffect } from "react";
  *
  * This is deliberately a hook called once from App rather than a <Reveal>
  * wrapper component: `.reveal` sits on elements that are direct children of CSS
- * grid layouts (.about-grid > .about-manifesto, .project-grid, .team-content,
+ * grid layouts (.about-block inside .about-blocks, .project-grid, .team-content,
  * .contact-form, ...), so wrapping them in extra elements would change how those
  * grids lay out. A component boundary adds no DOM; a wrapper would.
  */

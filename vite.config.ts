@@ -10,7 +10,11 @@ export default defineConfig(({ mode }) => {
   const emitSourcemaps = mode === 'development'
 
   return {
-    base: process.env.FIGMA_PUBLIC_URL ? `${process.env.FIGMA_PUBLIC_URL}/` : '/',
+    // GitHub Pages serves this repo from https://stqck-org.github.io/website/,
+    // so production assets must be referenced under that subpath. Dev and
+    // preview keep the root base so http://localhost:8443/ works without a
+    // redirect to /website/.
+    base: mode === 'production' ? '/website/' : '/',
     build: {
       sourcemap: emitSourcemaps ? 'inline' : false,
       minify: !emitSourcemaps,
