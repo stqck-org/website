@@ -1,4 +1,4 @@
-# Nordic Loop studio site
+# stqck studio site
 
 Single-page React 19 + Vite 8 marketing site. No backend, no API layer, no tests, no linter.
 

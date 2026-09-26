@@ -48,7 +48,7 @@ export function Footer() {
       <div className="shell">
         <div className="footer-top">
           <Link className="logo logo-light footer-logo" href="#home">
-            NORDIC/LOOP<span className="logo-dot">.</span>
+            stqck<span className="logo-dot">.</span>
           </Link>
           <p>
             Designing and engineering digital
@@ -82,7 +82,7 @@ export function Footer() {
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© 2026 Nordic Loop Studio</span>
+          <span>© 2026 stqck Studio</span>
           <span>Independent · Remote-first</span>
           <Link href="#home">Back to top ↑</Link>
         </div>
