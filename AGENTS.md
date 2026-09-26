@@ -1,0 +1,74 @@
+# Nordic Loop studio site
+
+Single-page React 19 + Vite 8 marketing site. No backend, no API layer, no tests, no linter.
+
+## Commands
+
+`package.json` defines only `dev`, `build`, `preview`, `format`. There is **no** test, lint, or typecheck script.
+
+- `pnpm run build` — the primary verification step (Vite fails on broken imports/JSX). Run before declaring work done.
+- `pnpm exec tsc --noEmit` — the typecheck. `tsconfig.json` is `strict` + `noEmit` and includes both `src` and `vite.config.ts`.
+- `pnpm run dev` — port `$PORT` (default 8443) with `strictPort: true`, so a second instance exits rather than picking a free port. Host is `0.0.0.0` unless `FIGMA_DEV_SERVER_HOST` is set.
+- `pnpm run preview` — serves the built `dist/` on the same port scheme.
+
+### Formatting is a trap
+
+`pnpm run format` runs **oxfmt 0.2.0**, whose defaults are **double quotes and no semicolons** — not Prettier's semicolon style. Every file under `src/` is written *with* semicolons, so all of them are already "unformatted" by oxfmt's standard.
+
+Consequences, all verified:
+
+- `pnpm exec oxfmt --list-different` at the root flags every `src/` file, `vite.config.ts`, and **753 files under `node_modules/`** (it also hard-errors on `.d.ts` files it cannot parse). Never run it repo-wide.
+- `pnpm run format -- <path>` works and is the only safe invocation. Pass explicit paths for the files you touched.
+- Formatting `vite.config.ts` or `src/main.tsx` converts their single quotes to double quotes — these two files are hand-written in single quotes while the rest of `src/` uses double quotes. That churn is a large unrelated diff; leave them alone unless you are already rewriting them.
+
+## Architecture
+
+`src/App.tsx` is ~25 lines of pure composition: calls `useRevealOnScroll()` and renders `<Hero /> <About /> <Team /> <Projects /> <Contact /> <Footer />` inside `<main>`.
+
+- **Exports are not uniform.** `App` is the only default export. Every section and UI component is a **named** export: `export function About()` imported as `import { About } from "../sections/About"`. Match the file you are editing.
+- `src/components/sections/` — one file per page section. Each owns its own state, so there is no state in `App` and no prop drilling: `menuOpen` in `Hero`, `memberIndex`/`thumbRow` in `Team`, `filter` in `Projects`, `submitted` in `Contact`. Lift state deliberately if a new section needs to share it.
+- `src/components/ui/` — `Button`, `Link`, `Heading`, `Field` (polymorphic, built with `createElement`) and `Arrow`.
+- `src/data/` — `team.ts`, `projects.ts`, `site.ts` hold all content, typed with **literal unions** (`PortraitTheme`, `ProjectSize`, `ProjectType`) that mirror CSS modifier class names, so a typo becomes a type error instead of silently unstyled markup.
+- `src/main.tsx` mounts into `#root` inside `React.StrictMode` and imports `./index.css`. Import side effects go only here.
+
+## Styling: plain CSS, not Tailwind utilities
+
+Tailwind v4 is installed and `src/index.css` does `@import "tailwindcss"`, but the app uses **zero** utility classes. All ~1200 lines of styling are hand-written semantic CSS referenced by `className` strings.
+
+- Add or change styles as rules in `src/index.css`; do not introduce utility classes. No Tailwind or PostCSS config file exists or is needed.
+- Design tokens are CSS custom properties on `:root` (`--ink`, `--paper`, `--accent`, `--shell`, `--font-body`, `--font-display`, …) — extend those rather than hardcoding colors.
+- The Google Fonts `@import url(...)` must stay above `@import "tailwindcss"`; both must stay at the top of the file.
+- Breakpoints are `max-width: 62rem` and `max-width: 46rem`; there is a `prefers-reduced-motion` block at the end. Preserve both when adding motion or components.
+- Images are hot-linked Unsplash URLs in `src/data/`. There is no `public/` directory and no local asset pipeline.
+
+### Tailwind's scanner still runs over your prose
+
+Tailwind v4 auto-detects source files by walking the repo, honouring `.gitignore`. Because this project uses no utility classes, every rule it emits is dead weight — but the walk still happens, and it reads **root-level markdown, including this file**.
+
+Verified: an earlier version of this file named five Tailwind utilities as examples of the junk rules they produce. Vite emitted exactly those five as dead rules in the production CSS bundle. Rewording this section to describe them instead of naming them removed them again on the next build. `pnpm exec tsc` is unaffected; only the CSS bundle grows and its content hash moves.
+
+**So: never name a Tailwind utility literally in this file.** Describe such rules in prose instead. When comparing CSS output between two builds, delete `dist/` first — a stale `dist/` is also scanned and can shift the hash.
+
+## Deploying
+
+This is a plain Vite app. There is no platform CLI and no deploy script in the repo; wire up whichever host you use and point it at `dist/`.
+
+- `vite.config.ts` sets `base` from the `FIGMA_PUBLIC_URL` env var, falling back to `/`. Set that variable to a subpath (e.g. `/website/`) if deploying under one; the trailing slash is added for you.
+- `vite.config.ts` enables inline sourcemaps and skips minification when the build mode is `development`, so `pnpm run build --mode development` produces a readable, cached-preview-friendly bundle.
+
+## Gotchas
+
+- **Never turn `.reveal` into a wrapper component.** `useRevealOnScroll` (`src/hooks/useRevealOnScroll.ts`) does a one-time `document.querySelectorAll(".reveal")` on mount and adds `is-visible` to each. `.reveal` sits on elements that participate directly in layout — several are grid children (`.about-manifesto` and `.brand-grid` inside `.about-grid`; `.contact-copy` and `.contact-form` inside `.contact-grid`; `.team-content` inside `.team-layout`; `.project-grid`). Wrapping them in a `<Reveal>` element inserts DOM nodes and breaks those grids. A component *boundary* adds no DOM; a wrapper element does.
+- The `key={member.name}` on the portrait `<div>` in `Team.tsx` is **inert** (a lone child is reconciled by position, not key) and load-bearing: lifting it onto the `<MemberPortrait>` call would make React remount the portrait and replay the `portrait-in` animation on every member change. There is an in-code comment saying so.
+- `Button`, `Link`, and `Heading` default `className` to `""` and therefore always emit a `class` attribute; `Field` deliberately has **no** default and emits none. Don't "tidy" that asymmetry — it changes the DOM.
+- `index.html` is a hand-written shell. There is no template engine: edit the `<title>`, `<meta name="description">`, and `<html lang>` directly. The lang value is `"en"` and the title/description were inlined by hand — keep all three in sync if the brand wording changes.
+- `brand-mark`, `color-card`, and `type-card` are applied in JSX via `<BrandCard variant=...>` but have **no** rules in `index.css`. Leftovers from the design import, harmless, left in place deliberately. (`principle-card`, the fourth variant, *is* styled.)
+- `src/imports/Nordic_Loop___Studio_Showcase_Mockup.html` is an imported design reference that nothing imports. It predates the implementation and its palette (violet `#5B4CFF` / lime, Space Grotesk) does not match the shipped site (blue `#2457ff`, Archivo Black). Do not "restore" styles from it.
+- The contact form and newsletter input are client-only: `submitForm` just flips local state, no request is made. Wiring a real submission is a new feature, not a missing config.
+
+## Verifying a refactor
+
+With no test suite, the reliable regression check is a rendered-DOM diff. Two harnesses that need no browser:
+
+- **Markup:** load `src/App.tsx` through Vite's own module server and render it. Verified working pattern — `createServer({ server: { middlewareMode: true }, appType: 'custom' })`, then `ssrLoadModule('/src/App.tsx')` and `renderToStaticMarkup` from `react-dom/server`, hashing the output. Deterministic: no scroll timing, no `IntersectionObserver`, no StrictMode double-invoke. Run it as `.tmp-*.mjs` from the project root (so `react`/`react-dom` resolve), capture the `sha256` before and after, and delete the file when done.
+- **Behaviour:** mount the real component in jsdom with a no-op `IntersectionObserver` stub and `Element.prototype.scrollBy`/`scrollTo` defined (both are unimplemented in jsdom and would throw), set `globalThis.IS_REACT_ACT_ENVIRONMENT = true`, dispatch real click/submit events, and diff the observable DOM after each interaction. jsdom is **not** in `node_modules` — install it into a scratch directory outside the repo and import it by absolute path so `package.json` stays untouched.
