@@ -22,19 +22,28 @@ Consequences, all verified:
 - `pnpm run format -- <path>` works and is the only safe invocation. Pass explicit paths for the files you touched.
 - Formatting `vite.config.ts` or `src/main.tsx` converts their single quotes to double quotes — these two files are hand-written in single quotes while the rest of `src/` uses double quotes. That churn is a large unrelated diff; leave them alone unless you are already rewriting them.
 
+### The dev server bundles Figma preview plugins
+
+`vite.config.ts` carries three custom plugins — `figmaErrorOverlayReplay`, `figmaReactRefreshBoundaryFallback`, and `figmaMakeKitPlugin` — for the Figma Make preview workflow. All three are gated `apply: 'serve'`, so they run only under `pnpm run dev` and never affect `vite build` output.
+
+- `figmaMakeKitPlugin` serves `/.figma/make/kit.html` and exposes `window.__FIGMA__.stories` built from any `src/**/*.stories.{ts,tsx,js,jsx}` file via `import.meta.glob`. **No such files exist today**; adding a `.stories.tsx` is what makes a component mountable in the Figma Make design surface.
+- `figmaReactRefreshBoundaryFallback` sends a full reload whenever a module stops defining a React Refresh boundary — exactly what happens when you move a component into a new file and leave only a re-export behind. That reload is intentional, not a bug to "fix".
+- `figmaErrorOverlayReplay` re-sends the most recent build error to any client that connects after it was broadcast, so a reloaded preview iframe still shows a broken build.
+
 ## Architecture
 
 `src/App.tsx` is ~25 lines of pure composition: calls `useRevealOnScroll()` and renders `<Hero /> <About /> <Projects /> <Team /> <Contact /> <Footer />` inside `<main>`. Note `Projects` comes **before** `Team`.
 
 - **Exports are not uniform.** `App` is the only default export. Every section and UI component is a **named** export: `export function About()` imported as `import { About } from "../sections/About"`. Match the file you are editing.
-- `src/components/sections/` — one file per page section. Each owns its own state, so there is no state in `App` and no prop drilling: `menuOpen` in `Hero`, `memberIndex`/`thumbRow` in `Team`, `filter` in `Projects`, `submitted` in `Contact`. Lift state deliberately if a new section needs to share it.
+- `src/components/sections/` — one file per page section. Each owns its own state, so there is no state in `App` and no prop drilling: `menuOpen` in `Hero`, `memberIndex`/`thumbRow` in `Team`, `selectedIndex`/`fading` in `Projects`, `submitted` in `Contact`. Lift state deliberately if a new section needs to share it.
 - `src/components/ui/` — `Button`, `Link`, `Heading`, `Field` (polymorphic, built with `createElement`) and `Arrow`.
-- `src/data/` — `team.ts`, `projects.ts`, `site.ts` hold all content, typed with **literal unions** (`PortraitTheme`, `ProjectSize`, `ProjectType`) that mirror CSS modifier class names, so a typo becomes a type error instead of silently unstyled markup.
+- `src/data/` — `team.ts`, `projects.ts`, `site.ts` hold all content, typed with **literal unions** (`PortraitTheme`, `ProjectType`) that mirror CSS modifier class names, so a typo becomes a type error instead of silently unstyled markup.
 - `src/main.tsx` mounts into `#root` inside `React.StrictMode` and imports `./index.css`. Import side effects go only here.
+- `@/*` → `./src/*` is aliased in both `tsconfig.json` (`paths`) and `vite.config.ts`, but **no source file uses it** — imports are relative (`../../data/team`). Don't introduce `@/` imports.
 
 ## Styling: plain CSS, not Tailwind utilities
 
-Tailwind v4 is installed and `src/index.css` does `@import "tailwindcss"`, but the app uses **zero** utility classes. All ~1100 lines of styling are hand-written semantic CSS referenced by `className` strings.
+Tailwind v4 is installed and `src/index.css` does `@import "tailwindcss"`, but the app uses **zero** utility classes. All ~1150 lines of styling are hand-written semantic CSS referenced by `className` strings.
 
 - Add or change styles as rules in `src/index.css`; do not introduce utility classes. No Tailwind or PostCSS config file exists or is needed.
 - Design tokens are CSS custom properties on `:root` (`--ink`, `--paper`, `--accent`, `--shell`, `--font-body`, `--font-display`, …) — extend those rather than hardcoding colors.
@@ -64,7 +73,7 @@ Publishing is a **local push, not CI.** Nothing deploys unless a human runs it.
 
 ## Gotchas
 
-- **Never turn `.reveal` into a wrapper component.** `useRevealOnScroll` (`src/hooks/useRevealOnScroll.ts`) does a one-time `document.querySelectorAll(".reveal")` on mount and adds `is-visible` to each. `.reveal` sits on elements that participate directly in layout — several are grid children (`.about-block` inside `.about-blocks`; `.contact-copy` and `.contact-form` inside `.contact-grid`; `.team-content` inside `.team-layout`; `.project-grid`). Wrapping them in a `<Reveal>` element inserts DOM nodes and breaks those grids. A component *boundary* adds no DOM; a wrapper element does. `About.tsx`'s local `AboutBlock` is the worked example: it is a component boundary that puts `reveal` on the grid child itself, not a wrapper.
+- **Never turn `.reveal` into a wrapper component.** `useRevealOnScroll` (`src/hooks/useRevealOnScroll.ts`) does a one-time `document.querySelectorAll(".reveal")` on mount and adds `is-visible` to each. `.reveal` sits on elements that participate directly in layout — several are grid children (`.about-block` inside `.about-blocks`; `.contact-copy` and `.contact-form` inside `.contact-grid`; `.team-content` inside `.team-layout`; `.project-description`, `.project-list`, and `.project-media` inside `.project-picker`). Wrapping them in a `<Reveal>` element inserts DOM nodes and breaks those grids. A component *boundary* adds no DOM; a wrapper element does. `About.tsx`'s local `AboutBlock` is the worked example: it is a component boundary that puts `reveal` on the grid child itself, not a wrapper.
 - The `key={member.name}` on the portrait `<div>` in `Team.tsx` is **inert** (a lone child is reconciled by position, not key) and load-bearing: lifting it onto the `<MemberPortrait>` call would make React remount the portrait and replay the `portrait-in` animation on every member change. There is an in-code comment saying so.
 - `Button`, `Link`, and `Heading` default `className` to `""` and therefore always emit a `class` attribute; `Field` deliberately has **no** default and emits none. Don't "tidy" that asymmetry — it changes the DOM.
 - `index.html` is a hand-written shell. There is no template engine: edit the `<title>`, `<meta name="description">`, and `<html lang>` directly. The lang value is `"en"` and the title/description were inlined by hand — keep all three in sync if the brand wording changes.
