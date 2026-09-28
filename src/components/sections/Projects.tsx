@@ -1,50 +1,25 @@
 import { useState } from "react";
 
-import {
-  projectFilters,
-  projects,
-  type Project,
-  type ProjectFilter,
-} from "../../data/projects";
+import { projects } from "../../data/projects";
 import { Arrow } from "../ui/Arrow";
 import { Button } from "../ui/Button";
 import { Heading } from "../ui/Heading";
 import { Link } from "../ui/Link";
 
-function ProjectCard({ project, index }: { project: Project; index: number }) {
-  return (
-    <article className={`project-card ${project.size}`} key={project.title}>
-      <Link href="#contact" ariaLabel={`View ${project.title} case study`}>
-        <div className="project-media">
-          <img src={project.image} alt="" />
-          <span className="project-arrow">
-            <Arrow />
-          </span>
-        </div>
-        <div className="project-info">
-          <div>
-            <span className="project-index">
-              / {String(index + 1).padStart(2, "0")}
-            </span>
-            <Heading as="h3">{project.title}</Heading>
-          </div>
-          <div>
-            <span className="project-client">{project.client}</span>
-            <p>{project.tagline}</p>
-            <span className="project-type">{project.type}</span>
-          </div>
-        </div>
-      </Link>
-    </article>
-  );
-}
-
 export function Projects() {
-  const [filter, setFilter] = useState<ProjectFilter>("All");
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [fading, setFading] = useState(false);
+  const project = projects[selectedIndex];
 
-  const visibleProjects = projects.filter(
-    (project) => filter === "All" || project.type === filter,
-  );
+  function selectProject(index: number) {
+    if (index === selectedIndex) return;
+    setFading(true);
+    // Fade the media out, swap the src, then fade back in on load — the same
+    // two-phase handoff the ingredient slider uses. Kept on the inner frame so
+    // the `.reveal`/`is-visible` classes on `.project-media` are never
+    // overwritten by a React className update.
+    window.setTimeout(() => setSelectedIndex(index), 240);
+  }
 
   return (
     <section className="projects section-light" id="work">
@@ -57,22 +32,59 @@ export function Projects() {
             </div>
             <Heading as="h2">Built to move.</Heading>
           </div>
-          <div className="filters" role="group" aria-label="Project filters">
-            {projectFilters.map((item) => (
-              <Button
-                className={`filter-tab ${filter === item ? "active" : ""}`}
-                key={item}
-                onClick={() => setFilter(item)}
-              >
-                {item}
-              </Button>
-            ))}
-          </div>
+          <span className="project-counter">
+            {String(selectedIndex + 1).padStart(2, "0")} /{" "}
+            {String(projects.length).padStart(2, "0")}
+          </span>
         </div>
-        <div className="project-grid reveal">
-          {visibleProjects.map((project, index) => (
-            <ProjectCard index={index} key={project.title} project={project} />
-          ))}
+        <div className="project-picker">
+          <div className="project-description reveal">
+            <span className="detail-label">
+              {project.type} — {project.client}
+            </span>
+            <p className="project-lede">{project.tagline}</p>
+            <p className="project-summary">{project.description}</p>
+            <Link
+              className="text-link"
+              href="#contact"
+              ariaLabel={`Start a project like ${project.title}`}
+            >
+              View case study <Arrow />
+            </Link>
+          </div>
+          <ol className="project-list reveal">
+            {projects.map((item, index) => (
+              <li key={item.title}>
+                <Button
+                  ariaLabel={`Select ${item.title}`}
+                  className={`project-row ${index === selectedIndex ? "selected" : ""}`}
+                  onClick={() => selectProject(index)}
+                >
+                  <span className="project-row-index">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <strong>{item.title}</strong>
+                  <span className="project-row-type">{item.type}</span>
+                </Button>
+              </li>
+            ))}
+          </ol>
+          <div className="project-media reveal">
+            <div
+              className={`project-media-frame ${fading ? "is-fading" : ""}`}
+            >
+              <img
+                src={project.image}
+                alt=""
+                onLoad={() => setFading(false)}
+                onError={() => setFading(false)}
+              />
+              <div className="project-media-caption">
+                <strong>{project.title}</strong>
+                <span>{project.client}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
