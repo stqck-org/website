@@ -4,13 +4,13 @@ Single-page React 19 + Vite 8 marketing site. No backend, no API layer, no tests
 
 ## Commands
 
-`package.json` defines `dev`, `build`, `preview`, `format`, `predeploy`, `deploy`. There is **no** test, lint, or typecheck script.
+`package.json` defines `dev`, `build`, `preview`, `format`. There is **no** test, lint, or typecheck script, and no deploy script — publishing moved to a GitHub Actions workflow (see **Deploying**).
 
 - `pnpm run build` — the primary verification step (Vite fails on broken imports/JSX). Run before declaring work done.
 - `pnpm exec tsc --noEmit` — the typecheck. `tsconfig.json` is `strict` + `noEmit` and includes both `src` and `vite.config.ts`.
 - `pnpm run dev` — port `$PORT` (default 8443) with `strictPort: true`, so a second instance exits rather than picking a free port. Host is `0.0.0.0` unless `FIGMA_DEV_SERVER_HOST` is set.
 - `pnpm run preview` — serves the built `dist/` on the same port scheme.
-- `pnpm run deploy` — see **Deploying**. Runs `build` first, then pushes to GitHub Pages. Local-only; there is no CI.
+- Deployment is CI, not local: a push to `main` triggers `.github/workflows/deploy.yml`, which builds `dist/` and publishes it to GitHub Pages. See **Deploying**.
 
 ### Formatting is a trap
 
@@ -63,10 +63,10 @@ Verified: an earlier version of this file named five Tailwind utilities as examp
 
 Deployed to **GitHub Pages** as a project site: `https://stqck-org.github.io/website/`. The remote is `git@github.com:stqck-org/website.git` (an **org** repo, so changing Pages settings needs org admin).
 
-Publishing is a **local push, not CI.** Nothing deploys unless a human runs it.
+Publishing is **CI, not a local push.** `.github/workflows/deploy.yml` builds `dist/` and publishes it to Pages on every push to `main`, and can be re-run manually via `workflow_dispatch`. There is no deploy script and no `gh-pages` branch; if a remote `gh-pages` branch still exists, it is stale and safe to delete.
 
-- `pnpm run deploy` — `predeploy` runs `pnpm run build`, then `gh-pages -d dist --nojekyll` force-pushes `dist/` to the `gh-pages` branch at the repo root. `gh-pages` is a devDependency; the branch is disposable and rewritten on every run, so never put work on it.
-- The `gh-pages` branch is **not enough on its own.** Repo Settings → Pages → Build and deployment → Source must be set to *Deploy from a branch*, branch `gh-pages`, folder `/ (root)`. That is a manual UI step.
+- The workflow checks out `main`, installs with `pnpm install --frozen-lockfile` (Node 22, pnpm 12 via `pnpm/action-setup`), runs `pnpm run build` in production mode, uploads `dist/` as a Pages artifact, then `actions/deploy-pages` publishes it at the project-site root.
+- Repo Settings → Pages → Build and deployment → Source must be set to **GitHub Actions**. That is a one-time manual UI step (org admin only); the deploy job hard-fails until it is. If it is ever reset to *Deploy from a branch*, pushes keep building but nothing publishes — re-check this setting first when deploys go quiet.
 - `vite.config.ts` sets `base` to `/website/` **only when `mode === 'production'`**, and to `/` otherwise. So `pnpm run dev` serves at `/` with no redirect, while builds and `pnpm run preview` serve at `/website/` to match the deployed subpath. Both were verified; do not reduce it to a single value without re-checking both.
 - `vite.config.ts` enables inline sourcemaps and skips minification when the build mode is `development`, so `pnpm run build --mode development` produces a readable, cached-preview-friendly bundle. Note this **disables the production `base`**, so that mode is not deployable.
 - There is no client-side router, so no SPA `404.html` fallback is needed. There is no `CNAME`; adding a custom domain needs **both** a `CNAME` in `dist/` **and** `base` changed to `/`, or every asset 404s.
