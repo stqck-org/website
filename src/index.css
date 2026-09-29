@@ -20,19 +20,31 @@
   font-synthesis: none;
 }
 
-html {
-  /* Page-per-scroll: sections snap to the viewport top. `proximity` (not
-     `mandatory`) so a section taller than one screen — common at the 62rem and
-     46rem breakpoints — still scrolls through instead of trapping the user. */
-  scroll-snap-type: y proximity;
-  scroll-behavior: smooth;
+/* Full-page snap scrolling, mirroring the `[n-parent]` recipe from
+   template/template.html: the body never scrolls; <main> is a scroll
+   container exactly one viewport tall; every section inside is one viewport
+   tall and snaps to its top. `mandatory` is safe only while no section is
+   taller than the screen — below 46rem width or height, sections grow past
+   one screen and `main` gets `scroll-snap-type: none` (see those queries). */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
   margin: 0;
   min-width: 20rem;
-  overflow-x: hidden;
   background: var(--paper);
+}
+
+main {
+  height: 100svh;
+  height: 100dvh; /* tracks the collapsing mobile URL bar, so the frame holds */
+  overflow-y: scroll;
+  overscroll-behavior: none;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
 }
 
 button,
@@ -1053,24 +1065,48 @@ img {
 
   .team-layout {
     grid-template-columns: 1fr;
-  }
-
-  .team-section {
-    height: auto;
-    min-height: 100svh;
+    /* The portrait absorbs whatever height the content column leaves, so the
+       stacked Team page is always exactly one screen tall. */
+    grid-template-rows: minmax(0, 1fr) auto;
   }
 
   .team-content {
     order: 2;
     padding-right: 0;
+    padding-block: clamp(1.5rem, 5vw, 3.5rem);
+  }
+
+  .team-content .section-label {
+    margin-bottom: 1.5rem;
+  }
+
+  .team-content h2 {
+    font-size: clamp(3rem, 10vw, 5.5rem);
+  }
+
+  .team-intro {
+    margin-block: 1.6rem;
+  }
+
+  .member-strip {
+    margin-top: 2.5rem;
+  }
+
+  .team-navigation {
+    margin-top: 1.5rem;
   }
 
   .team-portrait {
-    min-height: 42rem;
+    min-height: 0;
   }
 
   .contact-grid {
     grid-template-columns: 1fr;
+    gap: clamp(2.5rem, 6svh, 5rem);
+  }
+
+  .contact {
+    padding-block: clamp(1.5rem, 5svh, 4rem);
   }
 
   .project-picker {
@@ -1128,8 +1164,16 @@ img {
     padding-block: 1.25rem;
   }
 
-  .team-portrait {
-    min-height: 32rem;
+  /* Portrait min-height stays 0 (inherited from the 62rem block): the grid
+     rows minmax(0, 1fr) auto already absorb leftover height on phones too,
+     so the face band shrinks instead of the page growing past one screen. */
+
+  .team-content {
+    padding-block: clamp(1rem, 4vw, 2.5rem);
+  }
+
+  .team-content .section-label {
+    margin-bottom: 1.25rem;
   }
 
   .portrait-caption {
@@ -1140,46 +1184,122 @@ img {
     gap: 0.8rem;
   }
 
+  .portrait-caption p {
+    display: none;
+  }
+
   .team-content h2 {
-    font-size: clamp(4.2rem, 22vw, 6rem);
+    font-size: clamp(3.6rem, 21vw, 5.5rem);
+  }
+
+  .team-intro {
+    margin-block: 1.4rem;
   }
 
   .team-ctas {
     display: grid;
+    gap: 0.6rem;
   }
 
   .angle-button {
     width: 100%;
+    min-height: 2.9rem;
+    padding: 0.6rem 1.3rem;
+  }
+
+  .member-strip {
+    margin-top: 2rem;
+  }
+
+  .team-navigation {
+    margin-top: 1.25rem;
   }
 
   .project-header {
     align-items: flex-start;
     flex-direction: column;
     gap: 1.2rem;
+    margin-bottom: clamp(1.25rem, 3svh, 2rem);
   }
 
+  /* The picker becomes a flex column that fills the page: media absorbs the
+     leftover height, the list turns into a horizontal chip strip, and the
+     description sits at the bottom with a line-clamped summary. */
   .project-picker {
-    grid-template-columns: 1fr;
-    gap: clamp(2.5rem, 6vw, 4rem);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 3svh, 1.75rem);
   }
 
   .project-media {
-    grid-column: auto;
-    grid-row: auto;
     order: 1;
-    min-height: 20rem;
+    flex: 1 1 auto;
+    min-height: min(40svh, 20rem);
   }
 
   .project-list {
-    grid-column: auto;
-    grid-row: auto;
     order: 2;
+    display: flex;
+    align-self: stretch;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .project-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .project-list li {
+    flex: 0 0 auto;
+  }
+
+  .project-row {
+    display: flex;
+    width: auto;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.95rem;
+    border: 0.08rem solid var(--line-light);
+    border-radius: 999px;
+  }
+
+  .project-row.selected {
+    padding-inline: 0.95rem;
+  }
+
+  .project-row-type {
+    display: none;
+  }
+
+  .project-row strong {
+    font-size: 0.92rem;
+    white-space: nowrap;
   }
 
   .project-description {
-    grid-column: auto;
-    grid-row: auto;
     order: 3;
+    padding-bottom: 0.25rem;
+  }
+
+  .project-description .detail-label {
+    margin-bottom: 0.75rem;
+  }
+
+  .project-lede {
+    font-size: clamp(0.98rem, 4.2vw, 1.15rem);
+  }
+
+  .project-summary {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    margin: 0.75rem 0 0;
+  }
+
+  .project-description .text-link {
+    margin-top: 1.25rem;
   }
 
   .contact-form label {
@@ -1209,17 +1329,13 @@ img {
     align-items: flex-start;
     flex-direction: column;
   }
-
-  .about,
-  .projects,
-  .contact,
-  .team-section {
-    height: auto;
-    min-height: 100svh;
-  }
 }
 
 @media (max-height: 46rem) {
+  main {
+    scroll-snap-type: none;
+  }
+
   .about,
   .projects,
   .contact,
@@ -1230,7 +1346,8 @@ img {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
+  html,
+  main {
     scroll-behavior: auto;
     scroll-snap-type: none;
   }
