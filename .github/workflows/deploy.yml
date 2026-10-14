@@ -1,4 +1,5 @@
-name: Deploy to GitHub Pages
+
+name: Deploy website
 
 on:
   push:
@@ -7,49 +8,152 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
+# Évite deux déploiements concurrents du même site.
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: deploy-production
+  cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 12
-
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
+          cache: npm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
-      - name: Build
-        run: pnpm run build
+      - name: Build React/Vite
+        run: npm run build
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          printf '%s\n' "$VPS_SSH_KEY" \
+            > ~/.ssh/id_ed25519
+
+          printf '%s\n' "$VPS_KNOWN_HOSTS" \
+            > ~/.ssh/known_hosts
+
+          chmod 600 ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Package build
+        run: |
+          test -f dist/index.html
+          tar -czf "$RUNNER_TEMP/website.tar.gz" \
+            -C dist .
+
+      - name: Upload build
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_USER: ${{ vars.VPS_USER }}
+        run: |
+          scp \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            "$RUNNER_TEMP/website.tar.gz" \
+            "$VPS_USER@$VPS_HOST:/tmp/website-${GITHUB_SHA}.tar.gz"
+
+      - name: Deploy release
+        id: deploy
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_USER: ${{ vars.VPS_USER }}
+        run: |
+          ssh \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            "$VPS_USER@$VPS_HOST" \
+            "bash -s -- '$GITHUB_SHA'" <<'REMOTE'
+          set -Eeuo pipefail
+
+          RELEASE="$1"
+          BASE="/srv/www/website"
+          ARCHIVE="/tmp/website-${RELEASE}.tar.gz"
+          RELEASE_DIR="$BASE/releases/$RELEASE"
+
+          # Chaque release doit être nouvelle.
+          test -f "$ARCHIVE"
+          test ! -e "$RELEASE_DIR"
+
+          umask 027
+          mkdir -p "$RELEASE_DIR"
+          tar -xzf "$ARCHIVE" -C "$RELEASE_DIR"
+
+          # Refuse une archive incomplète.
+          test -s "$RELEASE_DIR/index.html"
+
+          # Droits : deploy-a écrit, www-data lit.
+          find "$RELEASE_DIR" -type d \
+            -exec chmod 2750 {} +
+          find "$RELEASE_DIR" -type f \
+            -exec chmod 0640 {} +
+
+          # Mémorise la version active avant le basculement.
+          if [ -L "$BASE/current" ]; then
+            OLD_RELEASE="$(readlink -f "$BASE/current")"
+            ln -s "$OLD_RELEASE" "$BASE/previous.new"
+            mv -Tf "$BASE/previous.new" "$BASE/previous"
+          fi
+
+          # Basculement atomique vers la nouvelle version.
+          ln -s "$RELEASE_DIR" "$BASE/current.new"
+          mv -Tf "$BASE/current.new" "$BASE/current"
+
+          rm -f "$ARCHIVE"
+          REMOTE
+
+          echo "switched=true" >> "$GITHUB_OUTPUT"
+
+      - name: Verify production site
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          curl --fail --silent --show-error \
+            --retry 5 --retry-delay 2 --retry-connrefused \
+            "$SITE_URL" -o /dev/null
+
+      - name: Roll back if verification fails
+        if: failure() && steps.deploy.outputs.switched == 'true'
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_USER: ${{ vars.VPS_USER }}
+        run: |
+          ssh \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            "$VPS_USER@$VPS_HOST" \
+            "bash -s" <<'REMOTE'
+          set -Eeuo pipefail
+
+          BASE="/srv/www/website"
+
+          test -L "$BASE/current"
+          test -L "$BASE/previous"
+
+          CURRENT="$(readlink -f "$BASE/current")"
+          PREVIOUS="$(readlink -f "$BASE/previous")"
+
+          test -f "$PREVIOUS/index.html"
+
+          # Échange current et previous.
+          ln -s "$CURRENT" "$BASE/current.rollback"
+          ln -s "$PREVIOUS" "$BASE/previous.rollback"
+
+          mv -Tf "$BASE/current.rollback" "$BASE/current"
+          mv -Tf "$BASE/previous.rollback" "$BASE/previous"
+          REMOTE
