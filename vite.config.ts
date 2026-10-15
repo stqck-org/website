@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
     // so production assets must be referenced under that subpath. Dev and
     // preview keep the root base so http://localhost:8443/ works without a
     // redirect to /website/.
-    base: mode === 'production' ? '/website/' : '/',
+    base: '/',
     build: {
       sourcemap: emitSourcemaps ? 'inline' : false,
       minify: !emitSourcemaps,
