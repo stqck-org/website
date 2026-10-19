@@ -10,10 +10,9 @@ export default defineConfig(({ mode }) => {
   const emitSourcemaps = mode === 'development'
 
   return {
-    // GitHub Pages serves this repo from https://stqck-org.github.io/website/,
-    // so production assets must be referenced under that subpath. Dev and
-    // preview keep the root base so http://localhost:8443/ works without a
-    // redirect to /website/.
+    // The site is served from the domain root (see the deploy workflow), so
+    // assets are referenced from '/'. Dev, preview and production share the
+    // same base.
     base: '/',
     build: {
       sourcemap: emitSourcemaps ? 'inline' : false,

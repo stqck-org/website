@@ -1,0 +1,17 @@
+{
+  "kicker": "We make stuff",
+  "scrollCue": "DISCOVER OUR WORK",
+  "menu": {
+    "work": "Work",
+    "team": "Team",
+    "contact": "Contact"
+  },
+  "aria": {
+    "mainNav": "Main navigation",
+    "toggleMenu": "Toggle navigation",
+    "language": "Language"
+  },
+  "alt": {
+    "heroImage": "Creative studio team collaborating around a desk"
+  }
+}

@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 
+import { useCopy } from "../../i18n/useCopy";
 import { Arrow } from "../ui/Arrow";
 import { Button } from "../ui/Button";
 import { Field } from "../ui/Field";
@@ -17,6 +18,7 @@ function DetailRow({ label, children }: { label: string; children: ReactNode }) 
 
 export function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const copy = useCopy("contact");
 
   function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -29,23 +31,23 @@ export function Contact() {
         <div className="contact-copy reveal">
           <div className="section-label label-dark">
             <span>04</span>
-            <span>Start a project</span>
+            <span>{copy.sectionLabel}</span>
           </div>
           <Heading as="h2">
-            Have a good problem?
+            {copy.headingLine1}
             <br />
-            Let’s talk.
+            {copy.headingLine2}
           </Heading>
           <div className="contact-details">
-            <DetailRow label="New business">
+            <DetailRow label={copy.details.newBusiness}>
               <Link href="mailto:hello@nordicloop.studio">
                 hello@nordicloop.studio
               </Link>
             </DetailRow>
-            <DetailRow label="Find us">
-              <p>Lisbon · Copenhagen · Everywhere</p>
+            <DetailRow label={copy.details.findUs}>
+              <p>{copy.details.location}</p>
             </DetailRow>
-            <DetailRow label="Follow">
+            <DetailRow label={copy.details.follow}>
               <p>
                 <Link href="#instagram">Instagram</Link> ·{" "}
                 <Link href="#linkedin">LinkedIn</Link>
@@ -55,39 +57,38 @@ export function Contact() {
         </div>
         <form className="contact-form reveal" onSubmit={submitForm}>
           <label>
-            <span>01 / Name</span>
-            <Field name="name" placeholder="Your name" required />
+            <span>{copy.form.name}</span>
+            <Field name="name" placeholder={copy.form.namePlaceholder} required />
           </label>
           <label>
-            <span>02 / Email</span>
+            <span>{copy.form.email}</span>
             <Field
               name="email"
-              placeholder="you@company.com"
+              placeholder={copy.form.emailPlaceholder}
               required
               type="email"
             />
           </label>
           <label>
-            <span>03 / Project type</span>
+            <span>{copy.form.projectType}</span>
             <Field as="select" name="projectType">
-              <option>New digital product</option>
-              <option>Website or platform</option>
-              <option>Brand identity</option>
-              <option>Ongoing product team</option>
+              {copy.form.options.map((option) => (
+                <option key={option}>{option}</option>
+              ))}
             </Field>
           </label>
           <label>
-            <span>04 / Tell us a little more</span>
+            <span>{copy.form.message}</span>
             <Field
               as="textarea"
               name="message"
-              placeholder="The short version is..."
+              placeholder={copy.form.messagePlaceholder}
               required
               rows={3}
             />
           </label>
           <Button className="angle-button angle-primary submit-button" type="submit">
-            {submitted ? "Message received" : "Send message"} <Arrow />
+            {submitted ? copy.form.sent : copy.form.send} <Arrow />
           </Button>
         </form>
       </div>

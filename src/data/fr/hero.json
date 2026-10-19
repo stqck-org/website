@@ -1,0 +1,17 @@
+{
+  "kicker": "we make stuff",
+  "scrollCue": "DÉCOUVRIR NOS PROJETS",
+  "menu": {
+    "work": "Projets",
+    "team": "Équipe",
+    "contact": "Contact"
+  },
+  "aria": {
+    "mainNav": "Navigation principale",
+    "toggleMenu": "Basculer la navigation",
+    "language": "Langue"
+  },
+  "alt": {
+    "heroImage": "Équipe de studio créatif collaborant autour d’un bureau"
+  }
+}
