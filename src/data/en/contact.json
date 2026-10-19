@@ -1,0 +1,28 @@
+{
+  "sectionLabel": "Start a project",
+  "headingLine1": "Have a good problem?",
+  "headingLine2": "Let’s talk.",
+  "details": {
+    "newBusiness": "New business",
+    "findUs": "Find us",
+    "follow": "Follow",
+    "location": "Lisbon · Copenhagen · Everywhere"
+  },
+  "form": {
+    "name": "01 / Name",
+    "email": "02 / Email",
+    "projectType": "03 / Project type",
+    "message": "04 / Tell us a little more",
+    "namePlaceholder": "Your name",
+    "emailPlaceholder": "you@company.com",
+    "messagePlaceholder": "The short version is...",
+    "options": [
+      "New digital product",
+      "Website or platform",
+      "Brand identity",
+      "Ongoing product team"
+    ],
+    "send": "Send message",
+    "sent": "Message received"
+  }
+}

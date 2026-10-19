@@ -147,9 +147,32 @@ img {
   gap: 1.4rem;
 }
 
-.language {
+.language-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   font-size: 0.67rem;
   letter-spacing: 0.16em;
+}
+
+.language-option {
+  padding: 0;
+  background: transparent;
+  opacity: 0.55;
+  transition: opacity 160ms ease;
+}
+
+.language-option:hover,
+.language-option:focus-visible {
+  opacity: 1;
+}
+
+.language-option.active {
+  opacity: 1;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 0.12rem;
+  text-underline-offset: 0.35rem;
 }
 
 .menu-trigger {

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { useCopy } from "../../i18n/useCopy";
 import { Arrow } from "../ui/Arrow";
 import { Heading } from "../ui/Heading";
 import { Link } from "../ui/Link";
@@ -33,24 +34,22 @@ function AboutBlock({
 }
 
 export function About() {
+  const copy = useCopy("about");
+
   return (
     <section className="about section-light" id="about">
       <div className="shell">
         <div className="section-label reveal">
           <span>01</span>
-          <span>Who we are</span>
+          <span>{copy.sectionLabel}</span>
         </div>
         <div className="about-blocks">
           <AboutBlock
             variant="lead"
             meta=""
-            title="stqck"
+            title={copy.blocks.lead.title}
           >
-            <p>
-                PRONOUNCED LIKE "STACK."
-                THE Q IS THE TWIST —
-                STRUCTURE, WITH PERSONALITY.
-            </p>
+            <p>{copy.blocks.lead.body}</p>
             {/* <Link className="text-link" href="#work">
               Our approach <Arrow />
             </Link> */}
@@ -58,17 +57,9 @@ export function About() {
           <AboutBlock
             variant="follow"
             meta=""
-            title="CHILL.
-                  COMPETENT.
-                  EASY TO TALK TO."
+            title={copy.blocks.follow.title}
           >
-            <p>
-                NO JARGON WITHOUT
-                EXPLANATION.
-                HONEST ABOUT LIMITS.
-                FRIENDLY TEAM — NOT AN
-                IVORY TOWER.
-            </p>
+            <p>{copy.blocks.follow.body}</p>
           </AboutBlock>
         </div>
       </div>

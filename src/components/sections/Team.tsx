@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 
 import { team, type TeamMember } from "../../data/team";
+import { format } from "../../i18n/format";
+import { useCopy } from "../../i18n/useCopy";
 import { Arrow } from "../ui/Arrow";
 import { Button } from "../ui/Button";
 import { Heading } from "../ui/Heading";
@@ -16,9 +18,11 @@ function MemberThumb({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const copy = useCopy("team");
+
   return (
     <Button
-      ariaLabel={`Select ${person.name}`}
+      ariaLabel={format(copy.aria.select, { name: person.name })}
       className={`member-thumb ${selected ? "selected" : ""}`}
       key={person.name}
       onClick={onSelect}
@@ -32,6 +36,9 @@ function MemberThumb({
 }
 
 function MemberPortrait({ member }: { member: TeamMember }) {
+  const copy = useCopy("team");
+  const text = copy.items[member.id];
+
   return (
     // The key below is inert here (a single child is reconciled by position, not
     // key). It is kept verbatim so the portrait-in animation does not begin
@@ -39,13 +46,19 @@ function MemberPortrait({ member }: { member: TeamMember }) {
     <div className={`team-portrait portrait-theme-${member.theme}`} key={member.name}>
       <div className="portrait-shape portrait-shape-one" />
       <div className="portrait-shape portrait-shape-two" />
-      <img src={member.image} alt={`${member.name}, ${member.role}`} />
+      <img
+        src={member.image}
+        alt={format(copy.aria.portrait, {
+          name: member.name,
+          role: text.role,
+        })}
+      />
       <div className="portrait-caption">
         <div>
           <strong>{member.name}</strong>
-          <span>{member.role}</span>
+          <span>{text.role}</span>
         </div>
-        <p>{member.note}</p>
+        <p>{text.note}</p>
       </div>
     </div>
   );
@@ -54,7 +67,9 @@ function MemberPortrait({ member }: { member: TeamMember }) {
 export function Team() {
   const [memberIndex, setMemberIndex] = useState(0);
   const thumbRow = useRef<HTMLDivElement>(null);
+  const copy = useCopy("team");
   const member = team[memberIndex];
+  const text = copy.items[member.id];
 
   function stepMember(amount: number) {
     setMemberIndex((current) => (current + amount + team.length) % team.length);
@@ -67,19 +82,17 @@ export function Team() {
         <div className="team-content reveal">
           <div className="section-label label-dark">
             <span>02</span>
-            <span>Our team</span>
+            <span>{copy.sectionLabel}</span>
           </div>
-          <Heading as="h2">MEET THE TEAM</Heading>
-          <p className="team-intro">
-            Small by design. Senior by default. Meet the people behind every
-            pixel and pull request.
-          </p>
+          <Heading as="h2">{copy.heading}</Heading>
+          <p className="team-intro">{copy.intro}</p>
           <div className="team-ctas">
             <Button className="angle-button angle-primary">
-              Learn about {member.name.split(" ")[0]} <Arrow />
+              {format(copy.learnAbout, { firstName: member.name.split(" ")[0] })}{" "}
+              <Arrow />
             </Button>
             <Button className="angle-button angle-outline">
-              View all team <Arrow />
+              {copy.viewAll} <Arrow />
             </Button>
           </div>
           <div className="member-strip" ref={thumbRow}>
@@ -96,14 +109,14 @@ export function Team() {
           <div className="team-navigation">
             <div className="arrow-controls">
               <Button
-                ariaLabel="Previous team member"
+                ariaLabel={copy.aria.previous}
                 className="round-control"
                 onClick={() => stepMember(-1)}
               >
                 <Arrow direction="left" />
               </Button>
               <Button
-                ariaLabel="Next team member"
+                ariaLabel={copy.aria.next}
                 className="round-control"
                 onClick={() => stepMember(1)}
               >

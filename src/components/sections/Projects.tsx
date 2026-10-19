@@ -1,6 +1,8 @@
 import { useState } from "react";
 
 import { projects } from "../../data/projects";
+import { format } from "../../i18n/format";
+import { useCopy } from "../../i18n/useCopy";
 import { Arrow } from "../ui/Arrow";
 import { Button } from "../ui/Button";
 import { Heading } from "../ui/Heading";
@@ -9,7 +11,9 @@ import { Link } from "../ui/Link";
 export function Projects() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [fading, setFading] = useState(false);
+  const copy = useCopy("projects");
   const project = projects[selectedIndex];
+  const projectText = copy.items[project.id];
 
   function selectProject(index: number) {
     if (index === selectedIndex) return;
@@ -28,9 +32,9 @@ export function Projects() {
           <div>
             <div className="section-label">
               <span>03</span>
-              <span>Selected work</span>
+              <span>{copy.sectionLabel}</span>
             </div>
-            <Heading as="h2">Built to move.</Heading>
+            <Heading as="h2">{copy.heading}</Heading>
           </div>
           <span className="project-counter">
             {String(selectedIndex + 1).padStart(2, "0")} /{" "}
@@ -40,23 +44,27 @@ export function Projects() {
         <div className="project-picker">
           <div className="project-description reveal">
             <span className="detail-label">
-              {project.type} — {project.client}
+              {copy.types[project.type]} — {project.client}
             </span>
-            <p className="project-lede">{project.tagline}</p>
-            <p className="project-summary">{project.description}</p>
+            <p className="project-lede">{projectText.tagline}</p>
+            <p className="project-summary">{projectText.description}</p>
             <Link
               className="text-link"
               href="#contact"
-              ariaLabel={`Start a project like ${project.title}`}
+              ariaLabel={format(copy.aria.startProject, {
+                title: project.title,
+              })}
             >
-              View case study <Arrow />
+              {copy.viewCaseStudy} <Arrow />
             </Link>
           </div>
           <ol className="project-list reveal">
             {projects.map((item, index) => (
               <li key={item.title}>
                 <Button
-                  ariaLabel={`Select ${item.title}`}
+                  ariaLabel={format(copy.aria.selectProject, {
+                    title: item.title,
+                  })}
                   className={`project-row ${index === selectedIndex ? "selected" : ""}`}
                   onClick={() => selectProject(index)}
                 >
@@ -64,7 +72,9 @@ export function Projects() {
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <strong>{item.title}</strong>
-                  <span className="project-row-type">{item.type}</span>
+                  <span className="project-row-type">
+                    {copy.types[item.type]}
+                  </span>
                 </Button>
               </li>
             ))}

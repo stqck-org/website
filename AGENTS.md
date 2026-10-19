@@ -10,7 +10,7 @@ Single-page React 19 + Vite 8 marketing site. No backend, no API layer, no tests
 - `pnpm exec tsc --noEmit` — the typecheck. `tsconfig.json` is `strict` + `noEmit` and includes both `src` and `vite.config.ts`.
 - `pnpm run dev` — port `$PORT` (default 8443) with `strictPort: true`, so a second instance exits rather than picking a free port. Host is `0.0.0.0` unless `FIGMA_DEV_SERVER_HOST` is set.
 - `pnpm run preview` — serves the built `dist/` on the same port scheme.
-- Deployment is CI, not local: a push to `main` triggers `.github/workflows/deploy.yml`, which builds `dist/` and publishes it to GitHub Pages. See **Deploying**.
+- Deployment is CI, not local: a push to `main` triggers `.github/workflows/deploy.yml`, which builds `dist/` and deploys it to a VPS. See **Deploying**.
 
 ### Formatting is a trap
 
@@ -37,9 +37,20 @@ Consequences, all verified:
 - **Exports are not uniform.** `App` is the only default export. Every section and UI component is a **named** export: `export function About()` imported as `import { About } from "../sections/About"`. Match the file you are editing.
 - `src/components/sections/` — one file per page section. Each owns its own state, so there is no state in `App` and no prop drilling: `menuOpen` in `Hero`, `memberIndex`/`thumbRow` in `Team`, `selectedIndex`/`fading` in `Projects`, `submitted` in `Contact`. Lift state deliberately if a new section needs to share it.
 - `src/components/ui/` — `Button`, `Link`, `Heading`, `Field` (polymorphic, built with `createElement`) and `Arrow`.
-- `src/data/` — `team.ts`, `projects.ts`, `site.ts` hold all content, typed with **literal unions** (`PortraitTheme`, `ProjectType`) that mirror CSS modifier class names, so a typo becomes a type error instead of silently unstyled markup.
-- `src/main.tsx` mounts into `#root` inside `React.StrictMode` and imports `./index.css`. Import side effects go only here.
+- `src/data/` — `team.ts`, `projects.ts`, `site.ts` hold the language-neutral structure only: ids, image URLs, section anchors, and the **literal unions** (`PortraitTheme`, `ProjectType`, `ProjectId`, `TeamMemberId`, `MenuLinkId`, `FooterLinkId`) that mirror CSS class names or JSON keys, so a typo becomes a type error instead of silently unstyled markup or a missing translation.        — see **Content and i18n**.
+- `src/main.tsx` mounts into `#root` inside `React.StrictMode`, wraps `<App />` in `<LanguageProvider>`, and imports `./index.css`. Import side effects go only here.
 - `@/*` → `./src/*` is aliased in both `tsconfig.json` (`paths`) and `vite.config.ts`, but **no source file uses it** — imports are relative (`../../data/team`). Don't introduce `@/` imports.
+
+## Content and i18n
+
+Every user-visible string lives in `src/data/{en,fr}/<section>.json` — one file per section (`hero`, `about`, `projects`, `team`, `contact`, `footer`) plus `document.json` for `<title>` and the meta description. JSON never reaches a component: each section has a typed façade in `src/data/copy/<section>.ts` that declares the copy interface and assigns both JSON files to it, so a missing or misspelled key is a `tsc` error in either language.
+
+- Components read text only through `useCopy("<section>")` (`src/i18n/useCopy.ts`). Never import a JSON file directly, and never hardcode a display string in JSX.
+- `src/data/copy/index.ts` aggregates the sections and resolves the current language with a **per-section fallback to English**: to leave a section untranslated, drop its `fr` import and the `fr` key from the façade bundle — it keeps rendering the English copy while the rest of the page is translated.
+- Interpolation uses `{token}` placeholders (e.g. `"Select {name}"`, `"Learn about {firstName}"`), rendered with `format()` from `src/i18n/format.ts` — JSON cannot hold functions.
+- `src/i18n/LanguageContext.tsx` resolves the initial language as stored choice (`localStorage`, key `stqck.lang`) → browser preference (`fr*` → French) → English, and on every change updates `<html lang>`, `document.title` and the meta description from `document.json`.
+- Projects and Team item texts are keyed by the stable ids declared in `src/data/projects.ts` / `team.ts`; menu and footer hrefs stay in `src/data/site.ts` so translating a label can never move a link.
+- Adding or changing a string means: update the façade interface, then both JSON files — `tsc` points at whatever you missed.
 
 ## Styling: plain CSS, not Tailwind utilities
 
@@ -62,22 +73,20 @@ Verified: an earlier version of this file named five Tailwind utilities as examp
 
 ## Deploying
 
-Deployed to **GitHub Pages** as a project site: `https://stqck-org.github.io/website/`. The remote is `git@github.com:stqck-org/website.git` (an **org** repo, so changing Pages settings needs org admin).
+Publishing is **CI, not a local push.** `.github/workflows/deploy.yml` builds `dist/` and deploys it to a VPS on every push to `main`, and can be re-run manually via `workflow_dispatch`. There is no deploy script and no `gh-pages` branch. The remote is `git@github.com:stqck-org/website.git`.
 
-Publishing is **CI, not a local push.** `.github/workflows/deploy.yml` builds `dist/` and publishes it to Pages on every push to `main`, and can be re-run manually via `workflow_dispatch`. There is no deploy script and no `gh-pages` branch; if a remote `gh-pages` branch still exists, it is stale and safe to delete.
-
-- The workflow checks out `main`, installs with `pnpm install --frozen-lockfile` (Node 22, pnpm 12 via `pnpm/action-setup`), runs `pnpm run build` in production mode, uploads `dist/` as a Pages artifact, then `actions/deploy-pages` publishes it at the project-site root.
-- Repo Settings → Pages → Build and deployment → Source must be set to **GitHub Actions**. That is a one-time manual UI step (org admin only); the deploy job hard-fails until it is. If it is ever reset to *Deploy from a branch*, pushes keep building but nothing publishes — re-check this setting first when deploys go quiet.
-- `vite.config.ts` sets `base` to `/website/` **only when `mode === 'production'`**, and to `/` otherwise. So `pnpm run dev` serves at `/` with no redirect, while builds and `pnpm run preview` serve at `/website/` to match the deployed subpath. Both were verified; do not reduce it to a single value without re-checking both.
-- `vite.config.ts` enables inline sourcemaps and skips minification when the build mode is `development`, so `pnpm run build --mode development` produces a readable, cached-preview-friendly bundle. Note this **disables the production `base`**, so that mode is not deployable.
-- There is no client-side router, so no SPA `404.html` fallback is needed. There is no `CNAME`; adding a custom domain needs **both** a `CNAME` in `dist/` **and** `base` changed to `/`, or every asset 404s.
+- The workflow checks out `main`, installs with `pnpm install --frozen-lockfile` (Node 22, pnpm 10 via `pnpm/action-setup`), and runs `pnpm run build`.
+- The build is packaged, copied over SSH (secrets `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`; variables `VPS_HOST`, `VPS_USER`, `SITE_URL`), and extracted into `/srv/www/website/releases/<sha>`. The `current` symlink is then switched atomically, keeping `previous` for rollback; a failed `curl` check of `$SITE_URL` rolls back automatically.
+- `vite.config.ts` sets `base: '/'` — the site is served from the domain root, and dev, preview and production share that base. (The comment above `base` still mentions an old GitHub Pages subpath; it is stale.)
+- `vite.config.ts` enables inline sourcemaps and skips minification when the build mode is `development`, so `pnpm run build --mode development` produces a readable, cached-preview-friendly bundle. It is not a production build.
+- There is no client-side router, so no SPA fallback page is needed.
 
 ## Gotchas
 
 - **Never turn `.reveal` into a wrapper component.** `useRevealOnScroll` (`src/hooks/useRevealOnScroll.ts`) does a one-time `document.querySelectorAll(".reveal")` on mount and adds `is-visible` to each. `.reveal` sits on elements that participate directly in layout — several are grid children (`.about-block` inside `.about-blocks`; `.contact-copy` and `.contact-form` inside `.contact-grid`; `.team-content` inside `.team-layout`; `.project-description`, `.project-list`, and `.project-media` inside `.project-picker`). Wrapping them in a `<Reveal>` element inserts DOM nodes and breaks those grids. A component *boundary* adds no DOM; a wrapper element does. `About.tsx`'s local `AboutBlock` is the worked example: it is a component boundary that puts `reveal` on the grid child itself, not a wrapper.
 - The `key={member.name}` on the portrait `<div>` in `Team.tsx` is **inert** (a lone child is reconciled by position, not key) and load-bearing: lifting it onto the `<MemberPortrait>` call would make React remount the portrait and replay the `portrait-in` animation on every member change. There is an in-code comment saying so.
 - `Button`, `Link`, and `Heading` default `className` to `""` and therefore always emit a `class` attribute; `Field` deliberately has **no** default and emits none. Don't "tidy" that asymmetry — it changes the DOM.
-- `index.html` is a hand-written shell. There is no template engine: edit the `<title>`, `<meta name="description">`, and `<html lang>` directly. The lang value is `"en"` and the title/description were inlined by hand — keep all three in sync if the brand wording changes.
+- `index.html` is a hand-written shell. There is no template engine: edit the `<title>`, `<meta name="description">`, and `<html lang>` directly. The lang value is `"en"` and the title/description were inlined by hand — they are the English defaults, which the language provider overwrites at runtime from `document.json`, so keep them in sync if the brand wording changes.
 - `src/imports/Nordic_Loop___Studio_Showcase_Mockup.html` is an imported design reference that nothing imports. It predates the implementation and its palette (violet `#5B4CFF` / lime, Space Grotesk) does not match the shipped site (blue `#2457ff`, Archivo Black). Do not "restore" styles from it. It is also the only remaining place the old `.brand-grid` class name appears, which is a coincidence, not a live reference.
 - The contact form and newsletter input are client-only: `submitForm` just flips local state, no request is made. Wiring a real submission is a new feature, not a missing config.
 
@@ -85,5 +94,5 @@ Publishing is **CI, not a local push.** `.github/workflows/deploy.yml` builds `d
 
 With no test suite, the reliable regression check is a rendered-DOM diff. Two harnesses that need no browser:
 
-- **Markup:** load `src/App.tsx` through Vite's own module server and render it. Verified working pattern — `createServer({ server: { middlewareMode: true }, appType: 'custom' })`, then `ssrLoadModule('/src/App.tsx')` and `renderToStaticMarkup` from `react-dom/server`, hashing the output. Deterministic: no scroll timing, no `IntersectionObserver`, no StrictMode double-invoke. Run it as `.tmp-*.mjs` from the project root (so `react`/`react-dom` resolve), capture the `sha256` before and after, and delete the file when done.
-- **Behaviour:** mount the real component in jsdom with a no-op `IntersectionObserver` stub and `Element.prototype.scrollBy`/`scrollTo` defined (both are unimplemented in jsdom and would throw), set `globalThis.IS_REACT_ACT_ENVIRONMENT = true`, dispatch real click/submit events, and diff the observable DOM after each interaction. jsdom is **not** in `node_modules` — install it into a scratch directory outside the repo and import it by absolute path so `package.json` stays untouched.
+- **Markup:** load `src/App.tsx` through Vite's own module server and render it, wrapped in `<LanguageProvider>` (`useCopy` throws without it); with no stored choice and no `fr*` navigator language it renders English. Verified working pattern — `createServer({ server: { middlewareMode: true }, appType: 'custom' })`, then `ssrLoadModule('/src/App.tsx')` and `renderToStaticMarkup` from `react-dom/server`, hashing the output. Deterministic: no scroll timing, no `IntersectionObserver`, no StrictMode double-invoke. Run it as `.tmp-*.mjs` from the project root (so `react`/`react-dom` resolve), capture the `sha256` before and after, and delete the file when done. Two things to normalize before diffing: `renderToStaticMarkup` inserts `<!-- -->` markers between adjacent text expressions, and multi-line JSX *attribute* strings keep their raw newlines.
+- **Behaviour:** mount the real component in jsdom with a no-op `IntersectionObserver` stub and `Element.prototype.scrollBy`/`scrollTo` defined (both are unimplemented in jsdom and would throw), set `globalThis.IS_REACT_ACT_ENVIRONMENT = true`, dispatch real click/submit events, and diff the observable DOM after each interaction. The language switcher is the worked example: click `FR` and assert `<html lang>`, `document.title`, the meta description, `localStorage` and the visible copy all switch. jsdom is **not** in `node_modules` — install it in a scratch directory outside `src/` and import it by path so `package.json` stays untouched.

@@ -1,41 +1,25 @@
+import { footerColumns, type FooterLinkId } from "../../data/site";
+import { useCopy } from "../../i18n/useCopy";
 import { Arrow } from "../ui/Arrow";
 import { Button } from "../ui/Button";
 import { Field } from "../ui/Field";
 import { Link } from "../ui/Link";
-
-const linkColumns = [
-  {
-    label: "Explore",
-    links: [
-      { label: "Studio", href: "#about" },
-      { label: "Work", href: "#work" },
-      { label: "Team", href: "#team" },
-      { label: "Contact", href: "#contact" },
-    ],
-  },
-  {
-    label: "Social",
-    links: [
-      { label: "Instagram ↗", href: "#instagram" },
-      { label: "LinkedIn ↗", href: "#linkedin" },
-      { label: "Dribbble ↗", href: "#dribbble" },
-    ],
-  },
-];
 
 function FooterLinkColumn({
   label,
   links,
 }: {
   label: string;
-  links: { label: string; href: string }[];
+  links: readonly { id: FooterLinkId; href: string }[];
 }) {
+  const copy = useCopy("footer");
+
   return (
     <div className="footer-links">
       <span className="detail-label">{label}</span>
       {links.map((link) => (
         <Link href={link.href} key={link.href}>
-          {link.label}
+          {copy.links[link.id]}
         </Link>
       ))}
     </div>
@@ -43,6 +27,8 @@ function FooterLinkColumn({
 }
 
 export function Footer() {
+  const copy = useCopy("footer");
+
   return (
     <footer className="footer">
       <div className="shell">
@@ -51,29 +37,29 @@ export function Footer() {
             stqck<span className="logo-dot">.</span>
           </Link>
           <p>
-            Designing and engineering digital
+            {copy.taglineLine1}
             <br />
-            products from first principles.
+            {copy.taglineLine2}
           </p>
         </div>
         <div className="footer-grid">
-          {linkColumns.map((column) => (
+          {footerColumns.map((column) => (
             <FooterLinkColumn
-              key={column.label}
-              label={column.label}
+              key={column.id}
+              label={copy.columns[column.id]}
               links={column.links}
             />
           ))}
           <div className="newsletter">
-            <span className="detail-label">Occasional signals, no noise</span>
+            <span className="detail-label">{copy.newsletter.label}</span>
             <div className="newsletter-field">
               <Field
                 name="newsletter"
-                placeholder="Email address"
+                placeholder={copy.newsletter.placeholder}
                 type="email"
               />
               <Button
-                ariaLabel="Subscribe to newsletter"
+                ariaLabel={copy.newsletter.aria}
                 className="newsletter-button"
               >
                 <Arrow />
@@ -82,9 +68,9 @@ export function Footer() {
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© 2026 stqck Studio</span>
-          <span>Independent · Remote-first</span>
-          <Link href="#home">Back to top ↑</Link>
+          <span>{copy.bottom.copyright}</span>
+          <span>{copy.bottom.note}</span>
+          <Link href="#home">{copy.bottom.backToTop}</Link>
         </div>
       </div>
     </footer>
