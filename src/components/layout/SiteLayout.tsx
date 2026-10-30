@@ -1,26 +1,15 @@
-import { useEffect } from "react"
-import { Outlet, useLocation } from "react-router"
+import { Outlet } from "react-router"
+import { SectionNavProvider } from "../../hooks/useSectionNav"
 import { useLocale } from "../../i18n/Locale"
 import { Anchor } from "../ui"
 import { SiteFooter } from "./SiteFooter"
 import { SiteHeader } from "./SiteHeader"
 
-function ScrollToTop() {
-  const { pathname } = useLocation()
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" })
-  }, [pathname])
-
-  return null
-}
-
 export function SiteLayout() {
   const { tx } = useLocale()
 
   return (
-    <>
-      <ScrollToTop />
+    <SectionNavProvider>
       <Anchor className="skip-link" href="#main">
         {tx("Skip to content", "Aller au contenu")}
       </Anchor>
@@ -29,6 +18,6 @@ export function SiteLayout() {
         <Outlet />
       </main>
       <SiteFooter />
-    </>
+    </SectionNavProvider>
   )
 }

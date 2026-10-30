@@ -17,7 +17,7 @@ export function ClosingCta() {
             "Expliquez-nous ce que vous cherchez à résoudre. Nous vous aiderons à définir la prochaine étape.",
           )}
         </p>
-        <ActionLink to="/contact" variant="dark">
+        <ActionLink to="/#contact-form" variant="dark">
           {tx("Tell us about your project", "Parlez-nous de votre projet")}{" "}
           <Arrow />
         </ActionLink>

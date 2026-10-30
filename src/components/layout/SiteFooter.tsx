@@ -19,25 +19,27 @@ export function SiteFooter() {
       <div className="footer-links">
         <div>
           <span className="eyebrow">{tx("Navigate", "Navigation")}</span>
-          <TextLink to="/services">{tx("Services", "Services")}</TextLink>
-          <TextLink to="/work">{tx("Work", "Projets")}</TextLink>
-          <TextLink to="/about">{tx("About", "À propos")}</TextLink>
+          <TextLink to="/#about">{tx("About", "À propos")}</TextLink>
+          <TextLink to="/#services">{tx("Services", "Services")}</TextLink>
+          <TextLink to="/#work">{tx("Work", "Projets")}</TextLink>
         </div>
         <div>
           <span className="eyebrow">{tx("Services", "Services")}</span>
-          <TextLink to="/services/web-development">
+          <TextLink to="/?service=web-development#service-web-development">
             {tx("Web development", "Développement web")}
           </TextLink>
-          <TextLink to="/services/erp-business-systems">
+          <TextLink to="/?service=erp-business-systems#service-erp-business-systems">
             {tx("Business systems", "Systèmes de gestion")}
           </TextLink>
-          <TextLink to="/services/ecommerce">E-commerce</TextLink>
+          <TextLink to="/?service=ecommerce#service-ecommerce">
+            E-commerce
+          </TextLink>
         </div>
         <div className="footer-contact">
           <span className="eyebrow">
             {tx("Have a useful problem?", "Un problème utile à résoudre ?")}
           </span>
-          <ActionLink to="/contact" variant="acid">
+          <ActionLink to="/#contact" variant="acid">
             {tx("Tell us about it", "Parlez-nous-en")}{" "}
             <span aria-hidden="true">→</span>
           </ActionLink>

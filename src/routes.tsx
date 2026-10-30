@@ -1,26 +1,45 @@
-import { createBrowserRouter } from "react-router"
+import { createBrowserRouter, Navigate, useParams } from "react-router"
 import { SiteLayout } from "./components/layout/SiteLayout"
-import { AboutPage } from "./pages/AboutPage"
-import { ContactPage } from "./pages/ContactPage"
-import { HomePage } from "./pages/HomePage"
 import { NotFoundPage } from "./pages/NotFoundPage"
-import { ProjectPage } from "./pages/ProjectPage"
-import { ServiceDetailPage } from "./pages/ServiceDetailPage"
-import { ServicesPage } from "./pages/ServicesPage"
-import { WorkPage } from "./pages/WorkPage"
+import { OnePage } from "./pages/OnePage"
+import { projects } from "./data/projects"
+import { services } from "./data/services"
+
+// Old detail URLs still work: they land on the matching expanded panel.
+function LegacyServiceRedirect() {
+  const { service } = useParams()
+  const known = services.some((item) => item.slug === service)
+  return (
+    <Navigate
+      to={known ? `/?service=${service}#service-${service}` : "/#services"}
+      replace
+    />
+  )
+}
+
+function LegacyProjectRedirect() {
+  const { slug } = useParams()
+  const known = projects.some((item) => item.slug === slug)
+  return (
+    <Navigate
+      to={known ? `/?project=${slug}#project-${slug}` : "/#work"}
+      replace
+    />
+  )
+}
 
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: SiteLayout,
     children: [
-      { index: true, Component: HomePage },
-      { path: "services", Component: ServicesPage },
-      { path: "services/:service", Component: ServiceDetailPage },
-      { path: "work", Component: WorkPage },
-      { path: "work/:slug", Component: ProjectPage },
-      { path: "about", Component: AboutPage },
-      { path: "contact", Component: ContactPage },
+      { index: true, Component: OnePage },
+      { path: "services", element: <Navigate to="/#services" replace /> },
+      { path: "services/:service", Component: LegacyServiceRedirect },
+      { path: "work", element: <Navigate to="/#work" replace /> },
+      { path: "work/:slug", Component: LegacyProjectRedirect },
+      { path: "about", element: <Navigate to="/#about" replace /> },
+      { path: "contact", element: <Navigate to="/#contact" replace /> },
       { path: "*", Component: NotFoundPage },
     ],
   },
