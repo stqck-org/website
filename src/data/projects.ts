@@ -1,52 +1,64 @@
-/**
- * Structural data for the case studies rendered by the Projects section.
- * Display text (taglines, descriptions, type labels) lives in
- * `src/data/{en,fr}/projects.json`, indexed by `id`; images and the closed
- * `type` union stay here because they are language-neutral.
- */
-export type ProjectType = "Web" | "Mobile" | "Branding";
+import type { Localized } from "./types"
 
-export type ProjectId = "lumen" | "origo" | "new-matter" | "woven";
-
-export interface Project {
-  id: ProjectId;
-  title: string;
-  client: string;
-  type: ProjectType;
-  image: string;
+export type Project = {
+  slug: string
+  title: string
+  category: Localized
+  summary: Localized
+  problem: Localized
+  solution: Localized
+  deliverables: Localized[]
+  visual: "lime" | "dark"
 }
 
 export const projects: Project[] = [
   {
-    id: "lumen",
-    title: "Lumen",
-    client: "Lumen Finance",
-    type: "Web",
-    image:
-      "https://images.unsplash.com/photo-1671519821564-ced7e41ee7ae?auto=format&fit=crop&w=1400&q=88",
+    slug: "market-day",
+    title: "Market/Day",
+    category: { en: "E-commerce concept", fr: "Concept e-commerce" },
+    summary: {
+      en: "A self-initiated study for a clear, mobile-first local goods catalogue.",
+      fr: "Une étude auto-initiée pour un catalogue de produits locaux clair et mobile-first.",
+    },
+    problem: {
+      en: "Explore how a broad catalogue can stay direct and easy to navigate on small screens.",
+      fr: "Explorer comment un large catalogue peut rester direct et facile à parcourir sur petit écran.",
+    },
+    solution: {
+      en: "A modular product system with strong categories, short decision paths, and operational status made visible.",
+      fr: "Un système produit modulaire avec des catégories fortes, des choix rapides et un état opérationnel visible.",
+    },
+    deliverables: [
+      { en: "Experience direction", fr: "Direction d’expérience" },
+      { en: "Mobile product flows", fr: "Parcours produit mobile" },
+      { en: "Interface concept", fr: "Concept d’interface" },
+    ],
+    visual: "lime",
   },
   {
-    id: "origo",
-    title: "Origo",
-    client: "Origo Mobility",
-    type: "Mobile",
-    image:
-      "https://images.unsplash.com/photo-1498262257252-c282316270bc?auto=format&fit=crop&w=1200&q=88",
+    slug: "ledger-00",
+    title: "Ledger/00",
+    category: {
+      en: "Business systems concept",
+      fr: "Concept système de gestion",
+    },
+    summary: {
+      en: "A self-initiated dashboard study for calmer operational decision-making.",
+      fr: "Une étude auto-initiée de tableau de bord pour des décisions opérationnelles plus sereines.",
+    },
+    problem: {
+      en: "Test how dense operational information can remain readable without hiding the underlying structure.",
+      fr: "Tester comment des données opérationnelles denses peuvent rester lisibles sans cacher leur structure.",
+    },
+    solution: {
+      en: "A high-contrast overview built around exceptions, recent activity, and clear next actions.",
+      fr: "Une vue d’ensemble contrastée, organisée autour des exceptions, de l’activité récente et des prochaines actions.",
+    },
+    deliverables: [
+      { en: "Information architecture", fr: "Architecture de l’information" },
+      { en: "Dashboard concept", fr: "Concept de tableau de bord" },
+      { en: "Interaction study", fr: "Étude d’interaction" },
+    ],
+    visual: "dark",
   },
-  {
-    id: "new-matter",
-    title: "New Matter",
-    client: "New Matter",
-    type: "Branding",
-    image:
-      "https://images.unsplash.com/photo-1671869203882-4831eea60268?auto=format&fit=crop&w=1200&q=88",
-  },
-  {
-    id: "woven",
-    title: "Woven",
-    client: "Woven Health",
-    type: "Web",
-    image:
-      "https://images.unsplash.com/photo-1483959651481-dc75b89291f1?auto=format&fit=crop&w=1400&q=88",
-  },
-];
+]
