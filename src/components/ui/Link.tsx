@@ -1,23 +1,23 @@
-import { createElement, type ReactNode } from "react";
+import type { AnchorHTMLAttributes } from "react"
+import { Link, type LinkProps } from "react-router"
 
-/**
- * Anchor with an optional accessible name. Keeps the `className = ""` default
- * for the same reason as Button — it emits a literal `class` attribute.
- */
-export function Link({
-  children,
+export function TextLink({ className = "", ...props }: LinkProps) {
+  return <Link className={`text-link ${className}`} {...props} />
+}
+
+export function Anchor({
   className = "",
-  href,
-  ariaLabel,
-}: {
-  children: ReactNode;
-  className?: string;
-  href: string;
-  ariaLabel?: string;
-}) {
-  return createElement(
-    "a",
-    { className, href, "aria-label": ariaLabel },
-    children,
-  );
+  ...props
+}: AnchorHTMLAttributes<HTMLAnchorElement>) {
+  return <a className={className} {...props} />
+}
+
+export function ActionLink({
+  variant = "dark",
+  className = "",
+  ...props
+}: LinkProps & { variant?: "dark" | "acid" }) {
+  return (
+    <Link className={`action action--${variant} ${className}`} {...props} />
+  )
 }
