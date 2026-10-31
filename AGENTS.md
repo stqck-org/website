@@ -16,7 +16,8 @@ Deployment is CI, not local: a push to `main` triggers `.github/workflows/deploy
 
 `src/main.tsx` mounts `src/App.tsx` into `#root` inside `React.StrictMode`. `App` wraps the router in `LocaleProvider`; `src/routes.tsx` owns the route table. `SiteLayout` wraps the outlet in `SectionNavProvider`, so the header and the page share the active-section state.
 
-- `src/pages/OnePage.tsx` — composes all seven sections in document order, owns the work filter and the two accordion states.
+- `src/pages/OnePage.tsx` — composes all seven sections in document order and runs the page-level hooks (`useActiveSection`, `useHashScroll`, `useRevealOnScroll`) plus `PageMeta`.
+- `src/sections/` — one component per page section: `HomeSection`, `AboutSection`, `ServicesSection`, `WorkSection`, `ProcessSection`, `PrinciplesSection`, `ContactSection`. Section-local state lives with the section: `ServicesSection` owns `openService`, `WorkSection` owns the work filter and `openProject`.
 - `src/pages/NotFoundPage.tsx` — the only other page; the catch-all route.
 - `src/hooks/` — `useSectionNav` (context for the active section), `useActiveSection` (IntersectionObserver, no scroll listener), `useHashScroll` (hash navigation, focus, manual scroll restoration), `useRevealOnScroll` (entrance animations).
 - `src/components/Section.tsx` — one `<section>` per page section; sets `id`, `data-section`, and `tabIndex={-1}`.
@@ -39,7 +40,7 @@ The section ids, top to bottom, are `home`, `about`, `services`, `work`, `proces
 - `useHashScroll` runs on every hash change: smooth scroll normally, instant on first load, and `history.scrollRestoration = "manual"` so back/forward land on the section rather than a stale pixel offset. It also moves focus to sections that are focusable.
 - The URL only changes when the user activates a link. Scrolling updates the active nav item without touching history.
 - Service and project details are inline accordions (`ServiceList`, `ProjectGrid`): real buttons with `aria-expanded`/`aria-controls`, panels toggled with `hidden`.
-- Legacy URLs redirect in `routes.tsx`: `/services`, `/work`, `/about`, `/contact` go to their section; `/services/:service` and `/work/:slug` redirect to `/?service=…#service-…` or `/?project=…#project-…`. `OnePage` reads those query params, opens the matching panel, and the hash scroll lands on it.
+- Legacy URLs redirect in `routes.tsx`: `/services`, `/work`, `/about`, `/contact` go to their section; `/services/:service` and `/work/:slug` redirect to `/?service=…#service-…` or `/?project=…#project-…`. `ServicesSection` and `WorkSection` read their own query param, open the matching panel, and the hash scroll lands on it.
 - Never put `data-reveal` inside a collapsed panel: the reveal observer only runs on mount, so the panel would open blank.
 
 ## Content and i18n
