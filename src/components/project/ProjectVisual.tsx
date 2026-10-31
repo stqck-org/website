@@ -8,17 +8,17 @@ export function ProjectVisual({ project }: { project: Project }) {
     >
       {project.visual === "lime" ? (
         <>
-          <span>LOCAL / GOODS</span>
-          <b>M/D</b>
+          <span>ERP / SYSTEM</span>
+          <b>E/N</b>
           <i />
-          <small>CATALOGUE STUDY — 001</small>
+          <small>ERP / SYSTEM</small>
         </>
       ) : (
         <>
-          <span>OPS OVERVIEW</span>
-          <b>00</b>
+          <span>WEB / MOBILE</span>
+          <b>Eco</b>
           <i />
-          <small>EXCEPTIONS / ACTIVITY / ACTION</small>
+          <small>WEB / MOBILE</small>
         </>
       )}
     </div>
