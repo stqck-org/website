@@ -49,7 +49,7 @@ export function ProcessSection() {
             ),
           ],
         ].map(([title, copy], index) => (
-          <article key={title} data-reveal data-reveal-delay={index % 3}>
+          <article key={index} data-reveal data-reveal-delay={index % 3}>
             <span>0{index + 1}</span>
             <Title as="h3">{title}</Title>
             <p>{copy}</p>

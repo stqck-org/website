@@ -65,7 +65,7 @@ export function AboutSection() {
         </p>
       </section>
 
-      <section className="expect-section">
+      {/* <section className="expect-section">
         <span className="eyebrow">
           {tx("WHAT TO EXPECT", "À QUOI S’ATTENDRE")}
         </span>
@@ -76,13 +76,13 @@ export function AboutSection() {
             tx("Early warnings", "Des alertes rapides"),
             tx("Useful handover", "Une transmission utile"),
           ].map((item, index) => (
-            <p key={item} data-reveal data-reveal-delay={index % 3}>
+            <p key={index} data-reveal data-reveal-delay={index % 3}>
               <span>0{index + 1}</span>
               {item}
             </p>
           ))}
         </div>
-      </section>
+      </section> */}
     </Section>
   )
 }

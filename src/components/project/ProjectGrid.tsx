@@ -91,7 +91,7 @@ export function ProjectGrid({
                 </span>
                 <ol className="project-case__scope">
                   {project.deliverables.map((item, itemIndex) => (
-                    <li key={localize(item)}>
+                    <li key={itemIndex}>
                       <span>0{itemIndex + 1}</span>
                       {localize(item)}
                     </li>

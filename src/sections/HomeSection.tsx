@@ -42,8 +42,6 @@ export function HomeSection() {
         <span>SYSTEMS</span>
         <span>·</span>
         <span>COMMERCE</span>
-        <span>·</span>
-        <span>MADAGASCAR</span>
       </div>
     </Section>
   )

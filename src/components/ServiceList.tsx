@@ -96,8 +96,8 @@ export function ServiceList({ openSlug, onToggle }: ServiceListProps) {
                   {tx("Straight answers.", "Des réponses directes.")}
                 </Title>
                 <div className="faq-list">
-                  {service.faq.map((item) => (
-                    <details key={localize(item.question)}>
+                  {service.faq.map((item, index) => (
+                    <details key={index}>
                       <summary>
                         {localize(item.question)} <span>+</span>
                       </summary>
