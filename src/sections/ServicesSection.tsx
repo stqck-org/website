@@ -25,14 +25,14 @@ export function ServicesSection() {
           </span>
           <Title>
             {tx(
-              "Useful things, built properly.",
-              "Des outils utiles, bien construits.",
+              "Useful things, built with care.",
+              "Des outils utiles, conçus avec soin.",
             )}
           </Title>
           <p className="section-lead">
             {tx(
-              "We focus on three areas where thoughtful software can make a practical difference. The shape of the solution follows the problem.",
-              "Nous nous concentrons sur trois domaines où un logiciel bien pensé peut faire une différence concrète. La solution s’adapte au problème.",
+              "We work across three areas where software can make a real difference. The right solution depends on the problem we're solving.",
+              "Nous intervenons dans trois domaines où le numérique peut faire une vraie différence. La bonne solution dépend avant tout du problème à résoudre.",
             )}
           </p>
         </div>
@@ -47,26 +47,26 @@ export function ServicesSection() {
       <section className="services-manifesto">
         <p>
           {tx(
-            "Not tech for tech’s sake.",
-            "Pas de technologie pour la technologie.",
+            "Technology should have a purpose.",
+            "La technologie doit servir à quelque chose.",
           )}
         </p>
         <PixelMark compact />
         <p>
           {tx(
-            "Built to be useful. Built to last.",
-            "Conçu pour être utile. Conçu pour durer.",
+            "Useful today. Ready for what comes next.",
+            "Utile dès aujourd’hui. Prêt pour la suite.",
           )}
         </p>
       </section>
 
       <section className="service-approach">
-        <span className="eyebrow">{tx("OUR FILTER", "NOTRE FILTRE")}</span>
-        <Title>{tx("Should it exist?", "Est-ce vraiment utile ?")}</Title>
+        <span className="eyebrow">{tx("OUR FILTER", "NOTRE CRITÈRE")}</span>
+        <Title>{tx("Let's make it useful.", "Donnons-lui une vraie utilité.")}</Title>
         <p>
           {tx(
-            "Before recommending a build, we ask whether it solves the right problem, fits the way people work, and can be maintained sensibly.",
-            "Avant de recommander un développement, nous vérifions qu’il résout le bon problème, correspond aux usages et peut être maintenu raisonnablement.",
+            "Before we start building, we take the time to understand what you're trying to achieve, who it's for, and how it will fit into the way people work and your needs. That helps us build something practical, useful, and made to last.",
+            "Avant de commencer à construire, nous prenons le temps de comprendre ce que vous souhaitez accomplir, à qui s'adresse la solution et comment elle s'intégrera dans le quotidien de ceux qui l'utiliseront et relatif à vos besoins. Cela nous aide à créer quelque chose de vraiment utile, pratique et fait pour durer.",
           )}
         </p>
       </section>

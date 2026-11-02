@@ -26,12 +26,12 @@ export function OnePage() {
     <div ref={pageRef}>
       <PageMeta
         title={tx(
-          "Digital studio in Madagascar",
-          "Studio numérique à Madagascar",
+          "Digital studio based in Madagascar",
+          "Studio numérique basé à Madagascar",
         )}
         description={tx(
-          "Tailor-made websites, business systems, and e-commerce solutions from Madagascar.",
-          "Sites web, systèmes de gestion et solutions e-commerce sur mesure depuis Madagascar.",
+          "Websites, business systems, and e-commerce solutions built around the way you work.",
+          "Des sites web, outils de gestion et solutions e-commerce adaptés à votre façon de travailler.",
         )}
       />
 

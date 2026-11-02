@@ -78,22 +78,22 @@ export function ServiceList({ openSlug, onToggle }: ServiceListProps) {
               <div className="service-detail-grid">
                 <DetailColumn
                   title={tx(
-                    "Problems we can address",
-                    "Problèmes que nous pouvons traiter",
+                    "Problems we can help solve",
+                    "Les problèmes que nous pouvons aider à résoudre",
                   )}
                   items={service.problems.map(localize)}
                 />
                 <DetailColumn
                   title={tx(
-                    "What the work can include",
-                    "Ce que le projet peut inclure",
+                    "What a project can involve",
+                    "Ce que le projet peut comprendre",
                   )}
                   items={service.deliverables.map(localize)}
                 />
               </div>
               <div className="service-panel__faq">
                 <Title as="h4">
-                  {tx("Straight answers.", "Des réponses directes.")}
+                  {tx("Clear answers.", "Des réponses claires.")}
                 </Title>
                 <div className="faq-list">
                   {service.faq.map((item, index) => (

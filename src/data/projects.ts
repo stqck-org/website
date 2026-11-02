@@ -1,21 +1,39 @@
 import type { Localized } from "./types"
 
+export type ProjectSector = "ecommerce" | "systems"
+
+export const projectSectors: {
+  value: ProjectSector
+  label: Localized
+}[] = [
+  { value: "ecommerce", label: { en: "E-commerce", fr: "E-commerce" } },
+  { value: "systems", label: { en: "Systems", fr: "Systèmes" } },
+]
+
 export type Project = {
   slug: string
+  aliases?: string[]
   title: string
   category: Localized
+  sectors: ProjectSector[]
   summary: Localized
   problem: Localized
   solution: Localized
   deliverables: Localized[]
   visual: "lime" | "dark"
+  mark: string
 }
 
 export const projects: Project[] = [
   {
-    slug: "ERP-next",
+    slug: "erp-next",
+    aliases: ["ERP-next"],
     title: "ERP/Next",
-    category: { en: "E-commerce concept", fr: "Concept e-commerce" },
+    category: {
+      en: "Business systems concept",
+      fr: "Concept de système de gestion",
+    },
+    sectors: ["systems"],
     summary: {
       en: "A modular business system for stock, production, sales, and HR, built to stay simple enough for small teams to use every day.",
       fr: "Un système de gestion d'entreprise modulaire couvrant les stocks, la production, les ventes et les ressources humaines, conçu pour rester simple et accessible aux petites équipes au quotidien.",
@@ -30,18 +48,24 @@ export const projects: Project[] = [
     },
     deliverables: [
       { en: "Module architecture", fr: "Architecture des modules" },
-      { en: "Daily operations flows", fr: "Parcours des opérations quotidiennes" },
-      { en: "Dashboard and reporting concept", fr: "Concept de tableau de bord et de reporting" },
+      {
+        en: "Daily operations flows",
+        fr: "Parcours des opérations quotidiennes",
+      },
+      {
+        en: "Dashboard and reporting concept",
+        fr: "Concept de tableau de bord et de reporting",
+      },
     ],
     visual: "lime",
+    mark: "E/N",
   },
   {
-    slug: "E-commerce Platform",
-    title: "E/commernce",
-    category: {
-      en: "Business systems concept",
-      fr: "Concept de système de gestion",
-    },
+    slug: "e-commerce-platform",
+    aliases: ["E-commerce Platform"],
+    title: "E-commerce",
+    category: { en: "E-commerce concept", fr: "Concept e-commerce" },
+    sectors: ["ecommerce"],
     summary: {
       en: "A mobile-first online store with clear categories and short checkout paths, built to be fast and easy to buy from on small screens.",
       fr: "Une boutique en ligne pensée en priorité pour les mobiles, avec des catégories claires et un processus de commande simplifié, offrant une expérience d'achat rapide et fluide sur les petits écrans.",
@@ -55,10 +79,17 @@ export const projects: Project[] = [
       fr: "Une boutique conçue pour le mobile, avec des catégories de produits bien structurées, un parcours d'achat raccourci et une visibilité sur l'état des commandes et des stocks pour le gestionnaire.",
     },
     deliverables: [
-      { en: "Shopping experience direction", fr: "Orientation de l'expérience d'achat" },
+      {
+        en: "Shopping experience direction",
+        fr: "Orientation de l'expérience d'achat",
+      },
       { en: "Mobile purchase flows", fr: "Parcours d'achat sur mobile" },
-      { en: "Storefront and back-office concept", fr: "Concept de boutique en ligne et d'interface d'administration" },
+      {
+        en: "Storefront and back-office concept",
+        fr: "Concept de boutique en ligne et d'interface d'administration",
+      },
     ],
     visual: "dark",
+    mark: "Eco",
   },
 ]

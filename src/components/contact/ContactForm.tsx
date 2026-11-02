@@ -79,7 +79,7 @@ export function ContactForm() {
       </div>
       <div className="field field--half">
         <label htmlFor="service">
-          {tx("Service of interest", "Service recherché")} *
+          {tx("Service you're interested in", "Service qui vous intéresse")} *
         </label>
         <Select
           id="service"
@@ -88,7 +88,7 @@ export function ContactForm() {
           aria-invalid={!!errors.service}
         >
           <option value="" disabled>
-            {tx("Choose one", "Choisissez")}
+            {tx("Choose one", "Choisissez une option")}
           </option>
           {serviceOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -98,7 +98,7 @@ export function ContactForm() {
             </option>
           ))}
           <option value="other">
-            {tx("Other / Not sure", "Autre / Pas encore sûr")}
+            {tx("Other / Not sure yet", "Autre / Pas encore sûr")}
           </option>
         </Select>
         {errors.service && (
@@ -108,8 +108,8 @@ export function ContactForm() {
       <div className="field">
         <label htmlFor="message">
           {tx(
-            "What are you trying to solve?",
-            "Que cherchez-vous à résoudre ?",
+            "What are you looking to solve?",
+            "Que souhaitez-vous résoudre ?",
           )}{" "}
           *
         </label>
@@ -132,8 +132,8 @@ export function ContactForm() {
         </Button>
         <p>
           {tx(
-            "No message is sent until a delivery provider is configured.",
-            "Aucun message n’est envoyé tant qu’un service d’envoi n’est pas configuré.",
+            "Your message won't be sent until a delivery provider is configured.",
+            "Votre message ne pourra pas être envoyé tant qu’un service d’envoi n’aura pas été configuré.",
           )}
         </p>
       </div>
@@ -141,14 +141,14 @@ export function ContactForm() {
         <div className="form-status" role="status">
           <strong>
             {tx(
-              "Your message has not been sent.",
+              "Your message hasn't been sent.",
               "Votre message n’a pas été envoyé.",
             )}
           </strong>
           <p>
             {tx(
-              "This preview has no contact provider configured yet. Your entries remain in the form so you can copy them safely.",
-              "Cette version de démonstration n’a pas encore de service de contact configuré. Vos informations restent dans le formulaire pour pouvoir les copier.",
+              "A contact provider hasn't been configured for this preview yet. Your entries are still here, so you can copy them before leaving.",
+              "Aucun service de contact n’est encore configuré pour cette prévisualisation. Les informations saisies restent affichées : vous pouvez les copier avant de quitter la page.",
             )}
           </p>
         </div>

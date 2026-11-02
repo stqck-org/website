@@ -6,19 +6,19 @@ export function ClosingCta() {
 
   return (
     <section className="closing-cta">
-      <span className="eyebrow">06 / {tx("NEXT STEP", "PROCHAINE ÉTAPE")}</span>
+      <span className="eyebrow">06 / {tx("NEXT STEP", "ET MAINTENANT ?")}</span>
       <Title>
-        {tx("Got something to build?", "Quelque chose à construire ?")}
+        {tx("Something you'd like to build?", "Un projet en tête ?")}
       </Title>
       <div>
         <p>
           {tx(
-            "Tell us what you're trying to solve. We'll help you work out the next step.",
-            "Expliquez-nous ce que vous cherchez à résoudre. Nous vous aiderons à définir la prochaine étape.",
+            "Tell us what you're trying to solve or build. We'll help you figure out a sensible next step.",
+            "Dites-nous ce que vous cherchez à résoudre ou à créer. Nous verrons avec vous quelle pourrait être la prochaine étape.",
           )}
         </p>
         <ActionLink to="/#contact-form" variant="dark">
-          {tx("Tell us about your project", "Parlez-nous de votre projet")}{" "}
+          {tx("Tell us about your project", "Parlons de votre projet")}{" "}
           <Arrow />
         </ActionLink>
       </div>

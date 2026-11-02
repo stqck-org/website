@@ -12,7 +12,7 @@ export function SiteFooter() {
         <p>
           {tx(
             "Solid work, honestly done.",
-            "Du travail solide, en toute transparence.",
+            "Du travail solide, en toute honnêteté.",
           )}
         </p>
       </div>
@@ -21,7 +21,7 @@ export function SiteFooter() {
           <span className="eyebrow">{tx("Navigate", "Navigation")}</span>
           <TextLink to="/#about">{tx("About", "À propos")}</TextLink>
           <TextLink to="/#services">{tx("Services", "Services")}</TextLink>
-          <TextLink to="/#work">{tx("Work", "Projets")}</TextLink>
+          <TextLink to="/#work">{tx("Work", "Réalisations")}</TextLink>
         </div>
         <div>
           <span className="eyebrow">{tx("Services", "Services")}</span>
@@ -29,7 +29,7 @@ export function SiteFooter() {
             {tx("Web development", "Développement web")}
           </TextLink>
           <TextLink to="/?service=erp-business-systems#service-erp-business-systems">
-            {tx("Business systems", "Systèmes de gestion")}
+            {tx("Business systems", "Outils de gestion")}
           </TextLink>
           <TextLink to="/?service=ecommerce#service-ecommerce">
             E-commerce
@@ -37,10 +37,10 @@ export function SiteFooter() {
         </div>
         <div className="footer-contact">
           <span className="eyebrow">
-            {tx("Have a useful problem?", "Un problème utile à résoudre ?")}
+            {tx("Have a problem worth solving?", "Un problème qui mérite une solution ?")}
           </span>
           <ActionLink to="/#contact" variant="acid">
-            {tx("Tell us about it", "Parlez-nous-en")}{" "}
+            {tx("Tell us about it", "Parlons-en")}{" "}
             <span aria-hidden="true">→</span>
           </ActionLink>
         </div>
@@ -49,8 +49,8 @@ export function SiteFooter() {
         <span>© {new Date().getFullYear()} stqck</span>
         <span>
           {tx(
-            "Madagascar rooted / Africa ready",
-            "Ancré à Madagascar / ouvert sur l’Afrique",
+            "Rooted in Madagascar.",
+            "De Madagascar, pour Madagascar.",
           )}
         </span>
         <LanguageSwitcher inverted />
