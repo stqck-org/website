@@ -329,6 +329,12 @@ button, a, input, select, textarea, summary { outline-offset: 4px; }
 .form-submit p { max-width: 24rem; margin: 0; color: var(--muted); font-size: .85rem; }
 .form-status { grid-column: 1/-1; border: var(--line); border-left: .8rem solid var(--acid); padding: 1rem; }
 .form-status p { margin: .3rem 0 0; }
+.form-status--error { border-left-color: #b51f1f; }
+.contact-honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.captcha-field { display: grid; gap: .6rem; }
+.captcha-field__widget { min-height: 78px; }
+.captcha-field__note { margin: 0; color: var(--muted); font: .68rem var(--mono); text-transform: uppercase; }
+.captcha-field__note a { text-underline-offset: .2rem; }
 .not-found { min-height: 75vh; padding: var(--section-pad) var(--page-pad); }
 .not-found > span { color: var(--acid); font: clamp(6rem,20vw,20rem)/.8 var(--display); -webkit-text-stroke: 2px var(--ink); }
 .not-found h1 { margin: 2rem 0 1rem; font: clamp(3rem,7vw,7rem)/1 var(--display); }

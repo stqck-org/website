@@ -10,7 +10,7 @@ Single-page React 19 + Vite 8 marketing site. Client-side only: no backend, no A
 - `pnpm run typecheck` — `tsc --noEmit` across `src` and `vite.config.ts`.
 - `pnpm run format` — oxfmt. Its defaults are double quotes and no semicolons. Pass explicit paths for the files you touched; never run it repo-wide because it also walks `node_modules`.
 
-Deployment is CI, not local: a push to `main` triggers `.github/workflows/deploy.yml`, which builds `dist/` and deploys it to a VPS with an atomic symlink switch and rollback. Because every route is served from `index.html`, the server must fall back to it for unknown paths.
+Deployment is CI, not local: a push to `main` triggers `.github/workflows/deploy.yml`, which builds `dist/` and deploys it to a VPS with an atomic symlink switch and rollback. Because every route is served from `index.html`, the server must fall back to it for unknown paths. The workflow passes `VITE_WEB3FORMS_ACCESS_KEY` from repository secrets into the Vite build.
 
 ## Architecture
 
@@ -72,7 +72,11 @@ The app uses hand-written semantic CSS in `src/index.css`; there are no utility 
 
 ## Contact form
 
-`ContactForm` validates client-side through `validateContactForm`, then calls `sendContact`. No delivery provider is configured, so `sendContact` intentionally resolves with `{ ok: false, reason: "not_configured" }` and the form shows a clearly worded status while keeping the user's entries. Wiring a real provider is a new feature, not a missing config. The form is the `#contact-form` target; `ClosingCta` opens the `#contact` section.
+`ContactForm` validates client-side through `validateContactForm`, requires a solved hCaptcha, then calls `sendContact`, which POSTs JSON to `https://api.web3forms.com/submit` with the `access_key`, a localized `subject`, `replyto`, and `h-captcha-response`. When `VITE_WEB3FORMS_ACCESS_KEY` is missing in development, `sendContact` returns `{ ok: false, reason: "not_configured" }` and the form shows an error state without clearing entries. Production uses Web3Forms; configure the key in CI secrets and `.env`.
+
+hCaptcha is enabled on the form in the Web3Forms dashboard and rendered with `@hcaptcha/react-hcaptcha`; the sitekey is `HCAPTCHA_SITEKEY` in `src/lib/contact.ts` (Web3Forms' free-plan key, overridable with `VITE_HCAPTCHA_SITEKEY`). Tokens are single-use and expire, so `resetCaptcha()` runs after every attempt, success or failure, and a token is cleared when the locale changes because the widget re-renders with `languageOverride`. The hidden `botcheck` honeypot stays as a cheap first filter, and `contact-honeypot` keeps it off-screen rather than `display: none`.
+
+The form is the `#contact-form` target; `ClosingCta` opens the `#contact` section. If the VPS ever sends a CSP, allow `js.hcaptcha.com` (script), `newassets.hcaptcha.com` (frame), and `api.hcaptcha.com` (connect).
 
 ## Validating a change
 

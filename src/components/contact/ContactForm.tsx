@@ -1,44 +1,115 @@
-import { useState, type FormEvent } from "react"
+import HCaptcha from "@hcaptcha/react-hcaptcha"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { services } from "../../data/services"
 import { useTranslation } from "../../i18n/useTranslation"
-import { sendContact } from "../../lib/contact"
+import { HCAPTCHA_SITEKEY, sendContact } from "../../lib/contact"
 import {
   validateContactForm,
   type ContactFormErrors,
 } from "../../lib/validateContactForm"
 import { Button, Input, Select, Textarea } from "../ui"
 
+type FormStatus = "idle" | "sending" | "success" | "error"
+
 export function ContactForm() {
-  const { tx } = useTranslation()
+  const { locale, tx, localize } = useTranslation()
   const [errors, setErrors] = useState<ContactFormErrors>({})
-  const [status, setStatus] = useState<"idle" | "sending" | "unconfigured">(
-    "idle",
-  )
+  const [status, setStatus] = useState<FormStatus>("idle")
+  const [captchaToken, setCaptchaToken] = useState("")
+  const [captchaError, setCaptchaError] = useState("")
+  const captchaRef = useRef<HCaptcha>(null)
   const serviceOptions = services.map((service) => ({
     value: service.slug,
     label: service.title,
   }))
 
+  // The widget is re-rendered in the new language, which invalidates any
+  // token already solved.
+  useEffect(() => {
+    setCaptchaToken("")
+  }, [locale])
+
+  function resetCaptcha() {
+    captchaRef.current?.resetCaptcha()
+    setCaptchaToken("")
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const data = new FormData(event.currentTarget)
+    const form = event.currentTarget
+    const data = new FormData(form)
     const values = Object.fromEntries(data.entries()) as Record<string, string>
+
+    // Honeypot: real visitors never see or check this field.
+    if (values.botcheck) return
+
     const nextErrors = validateContactForm(values, tx)
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
+
+    if (!captchaToken) {
+      setCaptchaError(
+        tx(
+          "Please complete the captcha before sending.",
+          "Veuillez valider le captcha avant d’envoyer.",
+        ),
+      )
+      return
+    }
+
+    const service = services.find((item) => item.slug === values.service)
+    const serviceLabel = service
+      ? localize(service.title)
+      : tx("Other / Not sure yet", "Autre / Pas encore sûr")
+    const subject = tx(
+      `Project inquiry from ${values.name}`,
+      `Demande de projet de ${values.name}`,
+    )
+
     setStatus("sending")
+    setCaptchaError("")
+
     const result = await sendContact({
       name: values.name,
       email: values.email,
       company: values.company || "",
-      service: values.service,
+      service: serviceLabel,
       message: values.message,
+      subject,
+      captchaToken,
+      botcheck: values.botcheck || "",
     })
-    if (!result.ok) setStatus("unconfigured")
+
+    // hCaptcha tokens are single-use, so a retry needs a fresh challenge.
+    resetCaptcha()
+
+    if (result.ok) {
+      form.reset()
+      setErrors({})
+      setStatus("success")
+      return
+    }
+
+    setStatus("error")
   }
 
   return (
-    <form className="contact-form" onSubmit={handleSubmit} noValidate>
+    <form
+      className="contact-form"
+      onSubmit={handleSubmit}
+      onInput={() => {
+        if (status === "success" || status === "error") setStatus("idle")
+      }}
+      noValidate
+    >
+      <input
+        className="contact-honeypot"
+        type="checkbox"
+        name="botcheck"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+      />
       <div className="field field--half">
         <label htmlFor="name">{tx("Name", "Nom")} *</label>
         <Input
@@ -123,32 +194,103 @@ export function ContactForm() {
           <span className="field-error">{errors.message}</span>
         )}
       </div>
+      <div
+        className="field captcha-field"
+        role="group"
+        aria-labelledby="captcha-label"
+        aria-describedby={captchaError ? "captcha-error" : undefined}
+      >
+        <span className="eyebrow" id="captcha-label">
+          {tx("Verification", "Vérification")}
+        </span>
+        <div className="captcha-field__widget">
+          <HCaptcha
+            ref={captchaRef}
+            sitekey={HCAPTCHA_SITEKEY}
+            reCaptchaCompat={false}
+            languageOverride={locale}
+            theme="light"
+            onVerify={(token) => {
+              setCaptchaToken(token)
+              setCaptchaError("")
+            }}
+            onExpire={() => setCaptchaToken("")}
+            onError={() =>
+              setCaptchaError(
+                tx(
+                  "The captcha failed to load. Please reload the page.",
+                  "Le captcha n’a pas pu se charger. Rechargez la page.",
+                ),
+              )
+            }
+          />
+        </div>
+        {captchaError && (
+          <span className="field-error" id="captcha-error" role="alert">
+            {captchaError}
+          </span>
+        )}
+        <p className="captcha-field__note">
+          {tx("Protected by hCaptcha", "Protégé par hCaptcha")} ·{" "}
+          <a
+            href="https://www.hcaptcha.com/privacy"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {tx("Privacy", "Confidentialité")}
+          </a>{" "}
+          ·{" "}
+          <a
+            href="https://www.hcaptcha.com/terms"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {tx("Terms", "Conditions")}
+          </a>
+        </p>
+      </div>
       <div className="form-submit">
         <Button type="submit" disabled={status === "sending"}>
           {status === "sending"
-            ? tx("Checking…", "Vérification…")
-            : tx("Review inquiry", "Vérifier la demande")}{" "}
+            ? tx("Sending…", "Envoi…")
+            : tx("Send inquiry", "Envoyer la demande")}{" "}
           <span aria-hidden="true">→</span>
         </Button>
         <p>
           {tx(
-            "Your message won't be sent until a delivery provider is configured.",
-            "Votre message ne pourra pas être envoyé tant qu’un service d’envoi n’aura pas été configuré.",
+            "We only use your details to reply to your inquiry.",
+            "Vos informations servent uniquement à répondre à votre demande.",
           )}
         </p>
       </div>
-      {status === "unconfigured" && (
-        <div className="form-status" role="status">
+      {status === "success" && (
+        <div className="form-status form-status--success" role="status">
           <strong>
             {tx(
-              "Your message hasn't been sent.",
-              "Votre message n’a pas été envoyé.",
+              "Thanks — your message is on its way.",
+              "Merci — votre message est en route.",
             )}
           </strong>
           <p>
             {tx(
-              "A contact provider hasn't been configured for this preview yet. Your entries are still here, so you can copy them before leaving.",
-              "Aucun service de contact n’est encore configuré pour cette prévisualisation. Les informations saisies restent affichées : vous pouvez les copier avant de quitter la page.",
+              "We'll get back to you within two business days.",
+              "Nous vous répondrons sous deux jours ouvrés.",
+            )}
+          </p>
+        </div>
+      )}
+      {status === "error" && (
+        <div className="form-status form-status--error" role="alert">
+          <strong>
+            {tx(
+              "Your message couldn't be sent.",
+              "Votre message n’a pas pu être envoyé.",
+            )}
+          </strong>
+          <p>
+            {tx(
+              "Please try again in a moment. Your entries are still here.",
+              "Réessayez dans un instant. Les informations saisies sont toujours là.",
             )}
           </p>
         </div>
