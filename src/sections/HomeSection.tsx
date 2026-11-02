@@ -13,17 +13,17 @@ export function HomeSection() {
         <Title as="h1">
           {tx("We make", "On crée")}
           <br />
-          <em>{tx("stuff.", "du solide.")}</em>
+          <em>{tx("stuff.", "des trucs.")}</em>
         </Title>
         <p>
           {tx(
-            "We build solid, tailor-made digital solutions for businesses ready to grow — from websites and online stores to business systems that work better.",
-            "Nous créons des solutions numériques solides et sur mesure pour les entreprises prêtes à grandir — des sites et boutiques en ligne aux systèmes de gestion plus efficaces.",
+            "We build digital solutions that fit the way your business works — from websites and online stores to systems that make everyday work easier.",
+            "Nous créons des solutions numériques adaptées à votre façon de travailler — des sites web et boutiques en ligne aux outils qui simplifient la gestion au quotidien.",
           )}
         </p>
         <div className="hero__actions">
           <ActionLink to="/#work" variant="acid">
-            {tx("Explore our work", "Voir nos projets")} <Arrow />
+            {tx("Explore our work", "Voir nos réalisations")} <Arrow />
           </ActionLink>
           <TextLink to="/#services">
             {tx("See what we do", "Découvrir nos services")} →

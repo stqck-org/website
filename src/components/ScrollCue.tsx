@@ -6,7 +6,7 @@ export function ScrollCue({ to }: { to: string }) {
 
   return (
     <TextLink to={to} className="scroll-cue">
-      {tx("Scroll to explore", "Faites défiler")}{" "}
+      {tx("Scroll to explore", "Défiler pour découvrir")}{" "}
       <span aria-hidden="true">↓</span>
     </TextLink>
   )

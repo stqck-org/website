@@ -17,11 +17,26 @@ type LocaleContextValue = {
 
 const LocaleContext = createContext<LocaleContextValue | null>(null)
 
+function detectLocale(): Locale {
+  if (typeof window === "undefined") return "en"
+  const saved = window.localStorage.getItem("stqck-locale")
+  if (saved === "fr" || saved === "en") return saved
+
+  const languages =
+    navigator.languages && navigator.languages.length > 0
+      ? navigator.languages
+      : [navigator.language]
+
+  for (const lang of languages) {
+    if (!lang) continue
+    const lower = lang.toLowerCase()
+    if (lower.startsWith("fr")) return "fr"
+  }
+  return "en"
+}
+
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    const saved = window.localStorage.getItem("stqck-locale")
-    return saved === "fr" ? "fr" : "en"
-  })
+  const [locale, setLocaleState] = useState<Locale>(() => detectLocale())
 
   const setLocale = (next: Locale) => {
     setLocaleState(next)

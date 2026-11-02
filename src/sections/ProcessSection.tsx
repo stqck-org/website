@@ -9,12 +9,12 @@ export function ProcessSection() {
     <Section id="process" className="process-section">
       <div className="section-head" data-reveal>
         <span className="eyebrow">
-          04 / {tx("HOW WE WORK", "NOTRE MÉTHODE")}
+          04 / {tx("HOW WE WORK", "COMMENT NOUS TRAVAILLONS")}
         </span>
         <Title>
           {tx(
-            "No black boxes. Just good work.",
-            "Pas de boîte noire. Juste du bon travail.",
+            "You see what's happening. We take care of the work.",
+            "Pas de boîte noire. Vous comprenez ce qu'on fait et pourquoi.",
           )}
         </Title>
       </div>

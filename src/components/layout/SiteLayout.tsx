@@ -11,7 +11,7 @@ export function SiteLayout() {
   return (
     <SectionNavProvider>
       <Anchor className="skip-link" href="#main">
-        {tx("Skip to content", "Aller au contenu")}
+        {tx("Skip to content", "Passer au contenu")}
       </Anchor>
       <SiteHeader />
       <main id="main">

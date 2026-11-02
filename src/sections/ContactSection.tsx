@@ -13,8 +13,8 @@ export function ContactSection() {
         <div className="contact-aside" data-reveal>
           <p className="contact-aside__lead">
             {tx(
-              "You don't need a complete specification to get started. Tell us what you need, what isn't working, or what you'd like to build.",
-              "Vous n’avez pas besoin d’un cahier des charges complet. Dites-nous ce dont vous avez besoin, ce qui ne fonctionne pas ou ce que vous souhaitez créer.",
+              "You don't need a finished specification to talk to us. Tell us what you're trying to do, what's getting in the way, or what you'd like to build.",
+              "Pas besoin d’avoir déjà rédigé un cahier des charges pour nous contacter. Expliquez-nous ce que vous cherchez à faire, ce qui vous bloque ou ce que vous aimeriez créer.",
             )}
           </p>
           <span className="eyebrow">
@@ -22,15 +22,15 @@ export function ContactSection() {
           </span>
           <p>
             {tx(
-              "The problem in plain language.",
-              "Le problème, avec des mots simples.",
+              "What you're trying to solve.",
+              "Ce que vous cherchez à résoudre.",
             )}
           </p>
           <p>
-            {tx("Who the solution is for.", "À qui s’adresse la solution.")}
+            {tx("Who it needs to work for.", "Les personnes qui utiliseront la solution.")}
           </p>
           <p>
-            {tx("Any important constraints.", "Les contraintes importantes.")}
+            {tx("The constraints we should know about.", "Les contraintes à prendre en compte.")}
           </p>
         </div>
         <ContactForm />

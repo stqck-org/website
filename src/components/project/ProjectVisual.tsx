@@ -1,26 +1,18 @@
 import type { Project } from "../../data/projects"
+import { useTranslation } from "../../i18n/useTranslation"
 
 export function ProjectVisual({ project }: { project: Project }) {
+  const { localize, tx } = useTranslation()
+
   return (
     <div
       className={`project-visual project-visual--${project.visual}`}
       aria-hidden="true"
     >
-      {project.visual === "lime" ? (
-        <>
-          <span>ERP / SYSTEM</span>
-          <b>E/N</b>
-          <i />
-          <small>ERP / SYSTEM</small>
-        </>
-      ) : (
-        <>
-          <span>WEB / MOBILE</span>
-          <b>Eco</b>
-          <i />
-          <small>WEB / MOBILE</small>
-        </>
-      )}
+      <span>{localize(project.category)}</span>
+      <b>{project.mark}</b>
+      <i />
+      <small>{tx("SELF-INITIATED", "AUTO-INITIÉ")}</small>
     </div>
   )
 }

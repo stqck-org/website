@@ -42,15 +42,15 @@ export function AboutSection() {
           </Title>
           <p>
             {tx(
-              "The name comes from “stack”: the layers that make digital products work. The pixel-inspired q is a provisional identity idea—a small break in the expected structure.",
-              "Le nom vient de « stack » : les différentes couches qui font fonctionner un produit numérique. Le q inspiré du pixel est une piste d’identité provisoire — une petite rupture dans la structure attendue.",
+              "The name comes from “stack”: the layers involved in the development process. The letter q—the cherry on the cake.",
+              "Le nom vient de « stack » : les différentes couches qui participent à la réalisation d'un projet. La lettre q-la cerise sur le gateau.",
             )}
           </p>
         </div>
       </section>
 
       <section className="roots-section">
-        <span className="eyebrow">MADAGASCAR / AFRICA</span>
+        <span className="eyebrow">MADAGASCAR</span>
         <Title data-reveal>
           {tx(
             "Local context is not a footnote.",
@@ -59,8 +59,8 @@ export function AboutSection() {
         </Title>
         <p data-reveal>
           {tx(
-            "Our Malagasy roots shape how we think about practical constraints, fair value, and systems that fit the realities around them. That grounded perspective can travel across the wider African market.",
-            "Nos racines malgaches influencent notre approche des contraintes concrètes, du juste prix et des systèmes adaptés aux réalités locales. Cette perspective ancrée peut rayonner à travers le marché africain.",
+            "Our Malagasy roots shape how we think about practical constraints, fair value, and systems that fit the realities around them. That grounded perspective follows us throughout our work.",
+            "Nos racines malgaches influencent notre approche des contraintes concrètes, du juste prix et des systèmes adaptés aux réalités locales. Cette perspective ancrée nous accompagne dans notre travail.",
           )}
         </p>
       </section>

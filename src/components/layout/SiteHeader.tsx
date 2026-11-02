@@ -62,7 +62,7 @@ export function SiteHeader() {
       <div className="header-actions">
         <LanguageSwitcher />
         <ActionLink to="/#contact" variant="acid" className="desktop-cta">
-          {tx("Start a project", "Parlons projet")}{" "}
+          {tx("Start a project", "Parlons de votre projet")}{" "}
           <span aria-hidden="true">↗</span>
         </ActionLink>
         <Button
@@ -99,7 +99,7 @@ export function SiteHeader() {
             aria-current={active === "contact" ? "location" : undefined}
             onClick={() => setOpen(false)}
           >
-            04 / {tx("Start a project", "Parlons projet")}
+            04 / {tx("Start a project", "Parlons de votre projet")}
           </Link>
         </nav>
       )}
