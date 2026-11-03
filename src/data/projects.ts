@@ -92,4 +92,38 @@ export const projects: Project[] = [
     visual: "dark",
     mark: "Eco",
   },
+  {
+    slug: "soravape-website",
+    aliases: ["soravape_website"],
+    title: "Sora Vape",
+    category: {
+      en: "E-commerce website",
+      fr: "Site e-commerce",
+    },
+    sectors: ["ecommerce", "systems"],
+    summary: {
+      en: "An online store built around the owner's vision, giving him the tools and knowledge to run it himself.",
+      fr: "Une boutique en ligne construite autour de la vision du gérant, avec les outils et les connaissances pour la gérer lui-même.",
+    },
+    problem: {
+      en: "The client had a clear vision of how his store should work, and what it didn't need.",
+      fr: "Le client avait une vision claire de sa boutique, de son fonctionnement et de ce dont elle n'avait pas besoin.",
+    },
+    solution: {
+      en: "We worked closely with the client to turn his vision into a working online store, keeping things simple and true to the way he wanted to do business. Along the way, we guided him through the entire process, from the website itself to the infrastructure behind it. The result was a store he could manage independently, understand, and eventually grow on his own terms.",
+      fr: "Nous avons travaillé aux côtés du client pour concrétiser sa vision, avec une boutique simple et fidèle à sa façon de travailler. Tout au long du projet, nous l'avons accompagné dans chaque étape, du site lui-même jusqu'à l'infrastructure qui le fait fonctionner. Il dispose aujourd'hui d'une boutique qu'il peut gérer en autonomie, comprendre et faire évoluer selon ses propres besoins.",
+    },
+    deliverables: [
+      {
+        en: "The online store",
+        fr: "La boutique en ligne",
+      },
+      {
+        en: "A complete setup, handed over to the client",
+        fr: "Une solution complète, remise au client",
+      },
+    ],
+    visual: "lime",
+    mark: "SV",
+  },
 ]
