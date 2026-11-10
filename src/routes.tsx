@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, useParams } from "react-router"
+import { Navigate, useParams, type RouteObject } from "react-router"
 
 import { SiteLayout } from "./components/layout/SiteLayout"
 
@@ -43,7 +43,7 @@ function LegacyProjectRedirect() {
   )
 }
 
-export const router = createBrowserRouter([
+export const routes: RouteObject[] = [
   {
     path: "/",
 
@@ -67,4 +67,4 @@ export const router = createBrowserRouter([
       { path: "*", Component: NotFoundPage },
     ],
   },
-])
+]

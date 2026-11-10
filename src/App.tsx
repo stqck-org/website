@@ -1,8 +1,11 @@
-import { RouterProvider } from "react-router"
+import { RouterProvider, type DataRouter } from "react-router"
 import { LocaleProvider } from "./i18n/Locale"
-import { router } from "./routes"
 
-export default function App() {
+type AppProps = {
+  router: DataRouter
+}
+
+export default function App({ router }: AppProps) {
   return (
     <LocaleProvider>
       <RouterProvider router={router} />
