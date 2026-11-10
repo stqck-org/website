@@ -5,7 +5,7 @@ Single-page React 19 + Vite 8 marketing site. Client-side only: no backend, no A
 ## Commands
 
 - `pnpm run dev` — dev server on `$PORT` (default `8443`), `strictPort: true`.
-- `pnpm run build` — production build to `dist/`.
+- `pnpm run build` — production build to `dist/`, prerendering `/` into `dist/index.html`.
 - `pnpm run preview` — serve the built `dist/` on the same port scheme.
 - `pnpm run typecheck` — `tsc --noEmit` across `src` and `vite.config.ts`.
 - `pnpm run format` — oxfmt. Its defaults are double quotes and no semicolons. Pass explicit paths for the files you touched; never run it repo-wide because it also walks `node_modules`.
@@ -14,7 +14,7 @@ Deployment is CI, not local: a push to `main` triggers `.github/workflows/deploy
 
 ## Architecture
 
-`src/main.tsx` mounts `src/App.tsx` into `#root` inside `React.StrictMode`. `App` wraps the router in `LocaleProvider`; `src/routes.tsx` owns the route table. `SiteLayout` wraps the outlet in `SectionNavProvider`, so the header and the page share the active-section state.
+`src/main.tsx` mounts `src/App.tsx` into `#root` inside `React.StrictMode`, hydrating the prerendered markup when it exists. `src/routes.tsx` exports the route table as `routes`; `main.tsx` builds the browser router and the prerender script builds a memory router. `App` accepts that router and wraps it in `LocaleProvider`. `SiteLayout` wraps the outlet in `SectionNavProvider`, so the header and the page share the active-section state.
 
 - `src/pages/OnePage.tsx` — composes all seven sections in document order and runs the page-level hooks (`useActiveSection`, `useHashScroll`, `useRevealOnScroll`) plus `PageMeta`.
 - `src/sections/` — one component per page section: `HomeSection`, `AboutSection`, `ServicesSection`, `WorkSection`, `ProcessSection`, `PrinciplesSection`, `ContactSection`. Section-local state lives with the section: `ServicesSection` owns `openService`, `WorkSection` owns the work filter, the selected case study, and the expanded case study.
@@ -29,9 +29,19 @@ Deployment is CI, not local: a push to `main` triggers `.github/workflows/deploy
 - `src/components/ui/` — small primitives (`Title`, links, `Button`, form controls, brand marks), re-exported from `index.ts`.
 - `src/data/` — `types.ts`, `services.ts`, `projects.ts`: the single source of truth for copy and structure. `projects.ts` also owns `projectSectors`; each project declares `sectors`, and the Work filter is derived from the sectors present.
 - `src/i18n/` — `Locale.tsx` (context, persistence, `<html lang>`) and `useTranslation.ts` (adds `localize` for `Localized` values).
-- `src/lib/` — `contact.ts` (delivery stub) and `validateContactForm.ts` (pure validation).
+- `src/lib/` — `contact.ts` (Web3Forms delivery), `validateContactForm.ts` (pure validation), and `prerenderChannel.ts` (build-only cleanup for React DOM server).
 
 Exports are named except `App`, which is the default export used by `main.tsx`. Imports are relative.
+
+### Prerendering
+
+`pnpm run build` is still one `vite build`. `vite-prerender-plugin` adds `src/prerender.tsx` to the client build, renders `/` with `createMemoryRouter` + `renderToString`, and injects the HTML into `#root`. Only `/` is prerendered: every other URL is a hash or a client-side redirect, so `dist/` remains one `index.html` plus assets and the deploy pipeline is unchanged.
+
+- The static document is always English. `LocaleProvider` starts at `"en"` and applies the stored or browser-detected locale in an effect, so French visitors see one English frame instead of a hydration mismatch. Do not read `localStorage` in the state initializer again.
+- `main.tsx` calls `hydrateRoot` when `#root` already has children and `createRoot` otherwise. Keep that check; a plain `createRoot` would discard the prerendered markup.
+- `src/lib/prerenderChannel.ts` must stay the first import in `src/prerender.tsx`. React's browser server build creates a `MessageChannel` that otherwise keeps the Node build process alive after the prerender finishes.
+- The `dropPrerenderEntry` plugin in `vite.config.ts` removes the prerender entry and its `react-dom/server` code from `dist/assets` after prerendering. Without it, that build-only chunk ships to the browser.
+- `index.html` carries the static title, description, and `og:*` / `twitter:*` tags. `PageMeta` updates the title and description at runtime. `og:url` and `og:image` are intentionally absent until the production domain is confirmed.
 
 ### Sections and navigation
 
@@ -54,7 +64,7 @@ tx("Services", "Services") // current locale
 localize(service.title) // Localized value in current locale
 ```
 
-`LocaleProvider` stores the choice in `localStorage` under `stqck-locale` and keeps `<html lang>` in sync. `PageMeta` sets `document.title` and the meta description once, from `OnePage`; `index.html` holds the English defaults for the initial document.
+`LocaleProvider` stores the choice in `localStorage` under `stqck-locale` and keeps `<html lang>` in sync. The prerendered document is English, so the first client render is English too and the saved or detected locale applies after mount. `PageMeta` sets `document.title` and the meta description once, from `OnePage`; `index.html` holds the English defaults for the initial document.
 
 To add a language, extend the `Locale` union, the initial-locale check, the switcher, and the `Localized` shape. Every copy value must gain the new key, so `tsc` points at whatever was missed.
 
@@ -83,8 +93,9 @@ The form is the `#contact-form` target; `ClosingCta` opens the `#contact` sectio
 There is no test suite. Use these in order:
 
 1. `pnpm run typecheck`
-2. `pnpm run build`
-3. Check the page in a browser at desktop and mobile widths when markup or styles change.
+2. `pnpm run build` — it must exit on its own and leave no `dist/assets/prerender-*` chunk.
+3. Check `dist/index.html` contains the hero copy and exactly one `<h1>`, one `id="home"`, and one `id="root"`.
+4. Check the page in a browser at desktop and mobile widths when markup or styles change, watching for hydration errors.
 
 Routes are `/` plus the catch-all 404; the real navigation is hash-based: `/#home`, `/#about`, `/#services`, `/#work`, `/#process`, `/#principles`, `/#contact`, and `/#contact-form`. Click every header, footer, and hero link; check active-nav tracking while scrolling, back/forward, a cold deep link, the service accordion, and the work tabs/arrows/expand-collapse.
 

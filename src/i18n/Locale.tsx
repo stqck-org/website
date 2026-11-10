@@ -36,7 +36,15 @@ function detectLocale(): Locale {
 }
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => detectLocale())
+  // The prerendered HTML is always English, so the first client render has to
+  // be English too or hydration mismatches. The stored/detected locale is
+  // applied right after mount.
+  const [locale, setLocaleState] = useState<Locale>("en")
+
+  useEffect(() => {
+    const detected = detectLocale()
+    setLocaleState((current) => (current === detected ? current : detected))
+  }, [])
 
   const setLocale = (next: Locale) => {
     setLocaleState(next)
