@@ -41,7 +41,7 @@ Exports are named except `App`, which is the default export used by `main.tsx`. 
 - `main.tsx` calls `hydrateRoot` when `#root` already has children and `createRoot` otherwise. Keep that check; a plain `createRoot` would discard the prerendered markup.
 - `src/lib/prerenderChannel.ts` must stay the first import in `src/prerender.tsx`. React's browser server build creates a `MessageChannel` that otherwise keeps the Node build process alive after the prerender finishes.
 - The `dropPrerenderEntry` plugin in `vite.config.ts` removes the prerender entry and its `react-dom/server` code from `dist/assets` after prerendering. Without it, that build-only chunk ships to the browser.
-- `index.html` carries the static title, description, and `og:*` / `twitter:*` tags. `PageMeta` updates the title and description at runtime. `og:url` and `og:image` are intentionally absent until the production domain is confirmed.
+- `index.html` carries the static title, description, canonical (`https://stqck.com/`), and `og:*` / `twitter:*` tags. `PageMeta` updates the title and description at runtime. The canonical is the root URL only: hash routes are not separate documents. `og:image` is still absent until a 1200×630 image is available.
 
 ### Sections and navigation
 
