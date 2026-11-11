@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://stqck.com/sitemap.xml
+Sitemap: https://stqck.xyz/sitemap.xml

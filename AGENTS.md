@@ -41,7 +41,8 @@ Exports are named except `App`, which is the default export used by `main.tsx`. 
 - `main.tsx` calls `hydrateRoot` when `#root` already has children and `createRoot` otherwise. Keep that check; a plain `createRoot` would discard the prerendered markup.
 - `src/lib/prerenderChannel.ts` must stay the first import in `src/prerender.tsx`. React's browser server build creates a `MessageChannel` that otherwise keeps the Node build process alive after the prerender finishes.
 - The `dropPrerenderEntry` plugin in `vite.config.ts` removes the prerender entry and its `react-dom/server` code from `dist/assets` after prerendering. Without it, that build-only chunk ships to the browser.
-- `index.html` carries the static title, description, canonical (`https://stqck.com/`), and `og:*` / `twitter:*` tags. `PageMeta` updates the title and description at runtime. The canonical is the root URL only: hash routes are not separate documents. `og:image` is still absent until a 1200×630 image is available.
+- The `criticalCss` plugin in `vite.config.ts` runs `beasties` in a post-order `generateBundle` hook, because the prerendered markup only exists in the bundle at that point. It inlines the used CSS into `<head>`, swaps the remaining stylesheet to a non-blocking preload, and adds preload links for the two hero fonts. Keep it after `dropPrerenderEntry()`.
+- `index.html` carries the static title, description, canonical (`https://stqck.xyz/`), and `og:*` / `twitter:*` tags. `PageMeta` updates the title and description at runtime. The canonical is the root URL only: hash routes are not separate documents. `og:image` is still absent until a 1200×630 image is available.
 
 ### Sections and navigation
 
@@ -72,7 +73,7 @@ To add a language, extend the `Locale` union, the initial-locale check, the swit
 
 The app uses hand-written semantic CSS in `src/index.css`; there are no utility classes in JSX. Tailwind v4 is installed and imported, but only its reset layer is relied upon. Add or change styles as rules in `index.css`; do not add a Tailwind or PostCSS config.
 
-- The Google Fonts `@import` must stay above the Tailwind import; both stay at the top of the file.
+- Fonts are self-hosted through `@fontsource` and imported in `src/main.tsx` before `./index.css`. Only the latin subsets and the weights in use are imported (Archivo Black 400, DM Sans 400/600, Space Mono 400/700). Do not add a Google Fonts `@import` back to `src/index.css`.
 - Design tokens are CSS custom properties on `:root` (`--ink`, `--paper`, `--acid`, `--charcoal`, `--muted`, `--line`, `--page-pad`, `--section-pad`) plus the font stacks. Extend those instead of hardcoding values.
 - Breakpoints are `1024px`, `760px`, and `360px`. The scroll behaviour lives in a block at the end of the file: `html { scroll-padding-top }`, `scroll-snap-type: y proximity` above `760px` only, and `scroll-snap-align: start` on `.page-section` (plus `#contact-form`, so the CTA's jump lands flush under the header). Never make snapping `mandatory`, and never enable it on mobile or under `prefers-reduced-motion`; long sections and forms must stay freely scrollable.
 - Entrance animations use `[data-reveal]` plus the `reveal-active` class that `useRevealOnScroll` adds only when JS and IntersectionObserver are available. Keep the pre-hidden styles behind `.reveal-active` and inside `prefers-reduced-motion: no-preference` so content can never stay invisible.

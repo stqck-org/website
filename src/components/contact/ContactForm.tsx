@@ -17,7 +17,9 @@ export function ContactForm() {
   const [status, setStatus] = useState<FormStatus>("idle")
   const [captchaToken, setCaptchaToken] = useState("")
   const [captchaError, setCaptchaError] = useState("")
+  const [captchaReady, setCaptchaReady] = useState(false)
   const captchaRef = useRef<HCaptcha>(null)
+  const captchaWidgetRef = useRef<HTMLDivElement>(null)
   const serviceOptions = services.map((service) => ({
     value: service.slug,
     label: service.title,
@@ -28,6 +30,32 @@ export function ContactForm() {
   useEffect(() => {
     setCaptchaToken("")
   }, [locale])
+
+  // The contact section is the last one on the page, so hCaptcha's third-party
+  // script does not need to load at first paint. Render it once the widget is
+  // close to the viewport. The empty container reserves the space either way,
+  // and this keeps the server and first client render identical.
+  useEffect(() => {
+    const widget = captchaWidgetRef.current
+    if (!widget) return
+
+    if (!("IntersectionObserver" in window)) {
+      setCaptchaReady(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return
+        setCaptchaReady(true)
+        observer.disconnect()
+      },
+      { rootMargin: "200px 0px" },
+    )
+
+    observer.observe(widget)
+    return () => observer.disconnect()
+  }, [])
 
   function resetCaptcha() {
     captchaRef.current?.resetCaptcha()
@@ -203,27 +231,29 @@ export function ContactForm() {
         <span className="eyebrow" id="captcha-label">
           {tx("Verification", "Vérification")}
         </span>
-        <div className="captcha-field__widget">
-          <HCaptcha
-            ref={captchaRef}
-            sitekey={HCAPTCHA_SITEKEY}
-            reCaptchaCompat={false}
-            languageOverride={locale}
-            theme="light"
-            onVerify={(token) => {
-              setCaptchaToken(token)
-              setCaptchaError("")
-            }}
-            onExpire={() => setCaptchaToken("")}
-            onError={() =>
-              setCaptchaError(
-                tx(
-                  "The captcha failed to load. Please reload the page.",
-                  "Le captcha n’a pas pu se charger. Rechargez la page.",
-                ),
-              )
-            }
-          />
+        <div className="captcha-field__widget" ref={captchaWidgetRef}>
+          {captchaReady && (
+            <HCaptcha
+              ref={captchaRef}
+              sitekey={HCAPTCHA_SITEKEY}
+              reCaptchaCompat={false}
+              languageOverride={locale}
+              theme="light"
+              onVerify={(token) => {
+                setCaptchaToken(token)
+                setCaptchaError("")
+              }}
+              onExpire={() => setCaptchaToken("")}
+              onError={() =>
+                setCaptchaError(
+                  tx(
+                    "The captcha failed to load. Please reload the page.",
+                    "Le captcha n’a pas pu se charger. Rechargez la page.",
+                  ),
+                )
+              }
+            />
+          )}
         </div>
         {captchaError && (
           <span className="field-error" id="captcha-error" role="alert">
